@@ -103,13 +103,18 @@ acs$county_only[acs$county_only == "Petersburg Borough"] <- "Petersburg Census A
 
 # redo as above w/ renames -- FUCK THE FUCK YEAH!!!!!!!!
 # some inexact matches, but the observations match up!!!!!
-join3 <- inner_join(acs, fips_codes,
+# join3 <- inner_join(acs, fips_codes,
+#                     by = c("county_only" = "county_only_fips",
+#                            "state_only" = "state_only_fips"))
+
+
+acs <- inner_join(acs, fips_codes,
                     by = c("county_only" = "county_only_fips",
                            "state_only" = "state_only_fips"))
 
 
 # rename & clean up
-acs <- join3 %>% 
+acs <- acs %>% 
   select(GEOID, state, state_name, state_code, 
          county, county_code, county_full.x,
          poptotal, popund18, gini, hhinc, aginc,
@@ -174,7 +179,7 @@ rm(list = c("join1", "join2", "join3", "fips_codes"))
 #         http://www.healthdata.org/us-health/data-download
 
 # import
-le <- read_csv("IHME_county_data_EDIT.csv")
+le <- read_csv("sources/IHME_county_data_EDIT.csv")
 
 
 # county names don't match perfectly, so alpha sort by county, state
@@ -193,7 +198,7 @@ rm(le)
 
 
 
-
+# MORTALITY - NO LONGER NEEDED! ====================
 # MERGE CDC CRUDE MORTALITY SCORES AS AN ALTERNATIVE TO LIFE EXPECTANCY
 # Source: CDC Wonder Compressed Mortality 1999-2016, selecting 2016 only
 # https://wonder.cdc.gov/
@@ -201,7 +206,7 @@ rm(le)
 
 
 # import
-mort <- read_delim("CDC_crude_mortality_2016.txt", delim = "\t",
+mort <- read_delim("sources/CDC_crude_mortality_2016.txt", delim = "\t",
                    col_types = "lcdddd")
 
 # rename to fips
@@ -236,7 +241,7 @@ rm(mort)
 
 
 # import
-votes16 <- read_csv("2016_US_County_Level_Presidential_Results.csv")
+votes16 <- read_csv("sources/2016_US_County_Level_Presidential_Results.csv")
 # Oglala Lakota County, SD has mislabelled FIPS
 which(votes16$county_name == "Oglala County")
 votes16[2412,11] <- 46102
@@ -248,11 +253,11 @@ votes16 <- votes16 %>%
   rename(fips = combined_fips) 
 
 # test merge
-test1 <- inner_join(acs, votes16, by = "fips") # lose 3 obs
-test2 <- anti_join(acs, votes16, by = "fips")  # these are the three lost
-test3 <- left_join(acs, votes16, by = "fips")
-which(is.na(test3$total_votes))
-View(test3[c(82, 549), ])  # expected via Test 2 & Oglala Lakota correction
+# test1 <- inner_join(acs, votes16, by = "fips") # lose 3 obs
+# test2 <- anti_join(acs, votes16, by = "fips")  # these are the three lost
+# test3 <- left_join(acs, votes16, by = "fips")
+# which(is.na(test3$total_votes))
+# View(test3[c(82, 549), ])  # expected via Test 2 & Oglala Lakota correction
 
 
 # Merge
@@ -262,14 +267,14 @@ acs <- left_join(acs, votes16, by = "fips")
 # https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
 # Archived on Wayback Machine:
 # https://web.archive.org/web/20190404123624/https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-acs[82, 27] <- 2228
+acs[82, 26] <- 2228
 
 
 # Kawalao County, HI correction, based unsourced on (but only 20 votes)
 # https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
 # Archived on Wayback Machine
 # https://web.archive.org/web/20190404125721/https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-acs[549, 27] <- 20
+acs[549, 26] <- 20
 
 
 # All Good!
@@ -390,137 +395,11 @@ rm(list = c("test1", "test2", "test3", "votes16"))
   acs <- acs %>%
     mutate(hdi = (health_index * ed_index * inc_index) ^ (1/3) )
   
+ 
   
+   
 
-  
-  
-# EXPLORATORY =====
-
-hdistats <- describe(acs$hdi)
-hdistats # whoa! zero's
-
-which(acs$hdi == 0)
-View(acs[c(2413, 3019), ])  # Ok these are poor/ unhealthy AF
-which(acs$health_index == 0)  # McDowell, WV
-which(acs$inc_index == 0)  # Oglala Lakota, SD
-
-
-
-# histogram w/ eqivalent normal & boxplot
-# close to normal, w/ a few outliers
-hdinorm <- rnorm(3142, mean = hdistats$mean, sd = hdistats$sd)
-
-ggplot(data = acs, mapping = aes(x = hdi)) +
-  geom_histogram(bins = 51, mapping = aes(y = ..density..),
-                 fill = "navyblue") +
-  geom_density(color = "hotpink", size = 0.8) +
-  geom_density(mapping = aes(x = hdinorm),
-               color = "orange", size = 0.8) +
-  geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
-  theme_minimal()
-
-ggplot() +
-  geom_boxplot(data = acs, mapping = aes(y = hdi)) + 
-  coord_flip() + theme_minimal()
-
-# weak
-cor(acs$gini, acs$turnout)
-# weaker
-cor(acs$hdi, acs$turnout)
-
-# moderate, negative - investigate?
-cor(acs$hdi, acs$gini)
-
-acs %>% ggplot(mapping = aes(x = hdi, y = gini)) +
-  geom_point(shape = 19, alpha = 0.1) +
-  geom_smooth(method = "lm") +
-  theme_minimal()
-  
-  
-# nope!  
-cor(acs$hhinc, acs$turnout) 
-
-# weak, but better & expected
-cor(acs$incpc, acs$turnout)
-  
-
-
-
+# Write Out =========
+write.csv(acs, file ="acs_.csv")
 
   
-# GRAPHICS ====
-  
-# gini  map
-ginimap <- acs %>% 
-  ggplot() +
-  geom_sf(aes(fill = gini, color = gini)) +
-  scale_fill_viridis_c(name = "Gini") + 
-  scale_color_viridis_c(name = "Gini") +
-  labs(
-    title = "Gini Coefficient by County, 2016", 
-    caption = "Data: 2016 ACS 5-year Estimates, US Census Bureau"
-    ) +
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = c(0.75, 0.1),
-        legend.background = element_blank(),
-        legend.direction = "horizontal",
-        legend.title = element_blank(),
-        legend.key.width = unit(2, "line"),
-        legend.text = element_text(vjust = -.1)
-        )  
-ginimap
-
-
-
-# HDI  map
-hdimap <- acs %>% 
-  ggplot() +
-  geom_sf(aes(fill = hdi, color = hdi)) +
-  scale_fill_viridis_c(name = "HDI", option = "plasma") + 
-  scale_color_viridis_c(name = "HDI", option = "plasma") +
-  labs(
-    title = "Modified HDI by County, 2016", 
-    caption = "Data: 2016 ACS 5-year Estimates, US Census Bureau"
-    ) +
-  borders("state") +
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = c(0.75, 0.1),
-        legend.background = element_blank(),
-        legend.direction = "horizontal",
-        legend.title = element_blank(),
-        legend.key.width = unit(2, "line"),
-        legend.text = element_text(vjust = -.1)
-        )  
-hdimap
-
-
-
-
-# Interactive
-# LOOKS UGLY AS B/C OF RESCALED AK/HI!!!!!
-# KEEP CODE TO USE IN ANOTHER VERSION W/O RESCALING (OR DROPPING)
-color_pal <- colorQuantile(palette = "viridis", domain = acs$hdi, n = 20)
-acs %>% 
-  st_transform(crs = "+init=epsg:4326") %>%
-  leaflet(width = "100%") %>%
-  addProviderTiles(provider = "CartoDB.Positron") %>% 
-  addPolygons(
-    popup = ~paste0(county, " County", "<br>",
-                    "Gini Coefficient: ", prettyNum(round(gini, 2)), "<br>",
-                    "HDI: ", prettyNum(hdi, big.mark = ",")),
-    stroke = FALSE,
-    smoothFactor = 0,
-    fillOpacity = 0.7,
-    color = ~color_pal(hdi)
-  )
-
-# add with pipe if legend
-  # addLegend(
-  #   position = "bottomleft",
-  #   pal = color_pal,
-  #   values = ~turnout16,
-  #   title = "2016 Turnout",
-  #   opacity = 1
-  # )
