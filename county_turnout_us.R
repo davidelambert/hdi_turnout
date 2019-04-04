@@ -25,7 +25,7 @@ acs_vars <- c("B01003_001", "B09001_001", "B19083_001", "B19001_001",
 # pull from census API
 acs <- get_acs(geography = "county", variables = acs_vars, 
                geometry = TRUE, year = 2016,
-               survey = "acs5", output = "wide", shift_geo = TRUE)
+               survey = "acs5", output = "wide")
 
 # backup for fucking up
 acs_bu <- acs
@@ -198,38 +198,42 @@ rm(le)
 
 
 
-# MORTALITY - NO LONGER NEEDED! ====================
-# MERGE CDC CRUDE MORTALITY SCORES AS AN ALTERNATIVE TO LIFE EXPECTANCY
-# Source: CDC Wonder Compressed Mortality 1999-2016, selecting 2016 only
-# https://wonder.cdc.gov/
-
-
-
-# import
-mort <- read_delim("sources/CDC_crude_mortality_2016.txt", delim = "\t",
-                   col_types = "lcdddd")
-
-# rename to fips
-mort$fips <- mort$`County Code`
-
-# rename `Crude Rate`
-mort$mort <- mort$`Crude Rate`
-
-# subset so don't need to clean up
-mort <- mort[, c("fips", "mort")]
-
-# merge
-acs <- left_join(acs, mort, by = "fips")
-
-# check - looks ok, slight difference but mort has more rows than acs
-sum(is.na(acs$mort))
-sum(is.na(mort$mort))
-
-
-rm(mort)
-
-
-
+# # MORTALITY - NO LONGER NEEDED! ====================
+# # MERGE CDC CRUDE MORTALITY SCORES AS AN ALTERNATIVE TO LIFE EXPECTANCY
+# # Source: CDC Wonder Compressed Mortality 1999-2016, selecting 2016 only
+# # https://wonder.cdc.gov/
+# 
+# 
+# 
+# # import
+# mort <- read_delim("sources/CDC_crude_mortality_2016.txt", delim = "\t",
+#                    col_types = "lcdddd")
+# 
+# # rename to fips
+# mort$fips <- mort$`County Code`
+# 
+# # rename `Crude Rate`
+# mort$mort <- mort$`Crude Rate`
+# 
+# # subset so don't need to clean up
+# mort <- mort[, c("fips", "mort")]
+# 
+# # merge
+# acs <- left_join(acs, mort, by = "fips")
+# 
+# # check - looks ok, slight difference but mort has more rows than acs
+# sum(is.na(acs$mort))
+# sum(is.na(mort$mort))
+# 
+# 
+# rm(mort)
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 # 2016 VOTE TOTALS =====
 
 # compiled by Tony McGovern, craped from townhall.com results
@@ -400,6 +404,19 @@ rm(list = c("test1", "test2", "test3", "votes16"))
    
 
 # Write Out =========
+  
+# remove all but acs SF dataframe/shapefile
+rm(list=setdiff(ls(), "acs"))
+
+# write Rdata
+save(acs, file = "acs_.Rdata")
+
+
+
+# remove geometry (shapefile) to write CSV
+st_geometry(acs) <- NULL
+
+# csv version w/ no geometry
 write.csv(acs, file ="acs_.csv")
 
   
