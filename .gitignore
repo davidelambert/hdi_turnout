@@ -1,0 +1,12 @@
+census_cvap_2016/
+nc_only/
+.Rproj.user/
+
+.Rhistory
+nc16.Rproj
+
+*.csv
+*.xlsx
+*.xls
+*.txt
+*.pdf
