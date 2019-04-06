@@ -9,8 +9,10 @@ library(tidyverse)
 options(tigris_class = "sf")
 options(tigris_use_cache = TRUE)
 
-acs <- 
 
+# get all versions
+load("acs_shift.Rdata")
+acs_only <- read_csv("acs_.csv")
 
 # EXPLORATORY =====
 
@@ -31,15 +33,20 @@ hdinorm <- rnorm(3142, mean = hdistats$mean, sd = hdistats$sd)
 ggplot(data = acs, mapping = aes(x = hdi)) +
   geom_histogram(bins = 51, mapping = aes(y = ..density..),
                  fill = "navyblue") +
-  geom_density(color = "hotpink", size = 0.8) +
+  geom_density(color = "orange", size = 0.8) +
   geom_density(mapping = aes(x = hdinorm),
-               color = "orange", size = 0.8) +
+               color = "hotpink", size = 0.8) +
   geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
   theme_minimal()
 
 ggplot() +
   geom_boxplot(data = acs, mapping = aes(y = hdi)) + 
   coord_flip() + theme_minimal()
+
+
+
+
+
 
 # weak
 cor(acs$gini, acs$turnout)
@@ -50,8 +57,13 @@ cor(acs$hdi, acs$turnout)
 cor(acs$hdi, acs$gini)
 
 acs %>% ggplot(mapping = aes(x = hdi, y = gini)) +
-  geom_point(shape = 19, alpha = 0.1) +
-  geom_smooth(method = "lm") +
+  geom_point(shape = 16,
+             alpha = .2,
+             size = 4,
+             stroke = 0,
+             color = "navyblue") +
+  geom_smooth(se = FALSE, color = "orange", size = 2) +
+  geom_smooth(se = FALSE, color = "hotpink", size = 2, method ="lm") +
   theme_minimal()
   
   
@@ -60,6 +72,26 @@ cor(acs$hhinc, acs$turnout)
 
 # weak, but better & expected
 cor(acs$incpc, acs$turnout)
+
+
+
+
+# clean hdi outliers ===========
+  # retrieve outliers
+  hdiout <- boxplot(acs$hdi, plot = FALSE)$out
+  
+  # trim outliers
+  hditrim <- acs[-which(acs$hdi %in% hdiout), ]
+  
+  hditrim %>% ggplot(mapping = aes(x = hdi, y = gini)) +
+    geom_point(shape = 16,
+               alpha = .2,
+               size = 4,
+               stroke = 0,
+               color = "navyblue") +
+    geom_smooth(se = FALSE, color = "orange", size = 2) +
+    geom_smooth(se = FALSE, color = "hotpink", size = 2, method ="lm") +
+    theme_minimal()
   
 
 
