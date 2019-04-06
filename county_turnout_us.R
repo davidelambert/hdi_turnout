@@ -12,14 +12,18 @@ options(tigris_use_cache = TRUE)
 
 # PULL COUNTY-LEVEL ACS VARS ====
 
-# check out what's what
+# all available variables for ACS 5-year 20212-2016
 vars16 <- load_variables(2016, "acs5", cache = T)
 
 # variables
 acs_vars <- c("B01003_001", "B09001_001", "B19083_001", "B19001_001", 
               "B19313_001", "B01002_001", "B15003_017", "B15003_018",
               "B15003_019", "B15003_020", "B15003_021", "B15003_022", 
-              "B15003_023", "B15003_024", "B15003_025", "B14001_002")
+              "B15003_023", "B15003_024", "B15003_025", "B14001_002",
+              "B01001_003", "B01001_004", "B01001_005", "B01001_006", 
+              "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
+              "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
+              "B01001_031", "B01001_032", "B01001_033", "B01001_034")
 
 
 # pull from census API
@@ -32,13 +36,13 @@ acs_bu <- acs
 
 # write out as csv in case census API breaks
 # leave commented unless updating pull
-# write.csv(acs, file = "acs_pull.csv")
+#  write.csv(acs, file = "acs_pull.csv")
 
 
 # descriptive names and drop MOEs
 acs <- acs %>% 
   rename(poptotal = B01003_001E,
-         popund18 = B09001_001E,
+         popu18 = B09001_001E,
          gini = B19083_001E,
          hhinc = B19001_001E,
          aginc = B19313_001E,
@@ -54,7 +58,11 @@ acs <- acs %>%
          phd = B15003_025E,
          enroll = B14001_002E,
          county_full = NAME) %>% 
-  select(GEOID, county_full, poptotal, popund18, gini, hhinc, aginc,
+  mutate(popu25 = B01001_003E + B01001_004E + B01001_005E + B01001_006E + 
+                    B01001_007E + B01001_008E + B01001_009E + B01001_010E + 
+                    B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
+                    B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>% 
+  select(GEOID, county_full, poptotal, popu18, popu25, gini, hhinc, aginc,
          medage, hs, ged, some1, some2, assoc, bacc, mast, prof,
          phd, enroll, geometry) %>%
   separate(county_full, sep = ", ", into = c("county_only", "state_only"),
@@ -73,10 +81,11 @@ statedc <- append(statedc, "DC", after = 7)
 
 # get fips codes
 data("fips_codes")
-glimpse(fips_codes)
+# glimpse(fips_codes)
 
 
 # backup county and state_name columns
+# MUST use for match....
 fips_codes$county_only_fips <- fips_codes$county
 fips_codes$state_only_fips <- fips_codes$state_name
 
@@ -117,7 +126,7 @@ acs <- inner_join(acs, fips_codes,
 acs <- acs %>% 
   select(GEOID, state, state_name, state_code, 
          county, county_code, county_full.x,
-         poptotal, popund18, gini, hhinc, aginc,
+         poptotal, popu18, popu25, gini, hhinc, aginc,
          medage, hs, ged, some1, some2, assoc, bacc, 
          mast, prof, phd, enroll, geometry) %>% 
   filter(state %in% statedc) %>% 
@@ -126,7 +135,7 @@ acs <- acs %>%
 
 
 # clear experiments
-rm(list = c("join1", "join2", "join3", "fips_codes"))
+rm(fips_codes)
 
 
 # OOPS =====
@@ -271,14 +280,14 @@ acs <- left_join(acs, votes16, by = "fips")
 # https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
 # Archived on Wayback Machine:
 # https://web.archive.org/web/20190404123624/https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-acs[82, 26] <- 2228
+acs[82, 27] <- 2228
 
 
 # Kawalao County, HI correction, based unsourced on (but only 20 votes)
 # https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
 # Archived on Wayback Machine
 # https://web.archive.org/web/20190404125721/https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-acs[549, 26] <- 20
+acs[549, 27] <- 20
 
 
 # All Good!
@@ -288,7 +297,7 @@ which(is.na(acs$total_votes))
 # CREATE TURNOUT VARIABLE =====
 
 acs <- acs %>% 
-  mutate(vap = poptotal - popund18,
+  mutate(vap = poptotal - popu18,
          turnout = total_votes / vap)
 
 which(is.na(acs$turnout))  # all good!
@@ -316,6 +325,9 @@ rm(list = c("test1", "test2", "test3", "votes16"))
   acs <- acs %>%
     mutate(health_index = ((le - lemin) / (lemax - lemin)) * 10)
   
+  # check out
+  describe(acs$health_index)
+  
 
   
   
@@ -329,15 +341,15 @@ rm(list = c("test1", "test2", "test3", "votes16"))
   # Attainment index
   
     # bin all >= HS into HS, Bacc, higher, (bacc is already binned)
-    # then generate population proportions,
+    # then generate population proportions FOR POP 25 & OVER,
     # then aggregate attainment score
     acs <- acs %>%
       mutate(hsplus = hs+ged+some1+some2+assoc+bacc+mast+prof+phd,
              baccplus = bacc+mast+prof+phd,
              mastplus = mast+prof+phd,
-             hsprop = hsplus / poptotal,
-             baccprop = baccplus / poptotal,
-             gradprop = mastplus / poptotal,
+             hsprop = hsplus / (poptotal - popu25),
+             baccprop = baccplus / (poptotal - popu25),
+             gradprop = mastplus / (poptotal - popu25),
              attain_score = hsprop + baccprop + gradprop)
     
     # Goalposts from SSRC 2016 report
@@ -349,29 +361,16 @@ rm(list = c("test1", "test2", "test3", "votes16"))
       mutate(attain_index = ((attain_score - attmin) / (attmax - attmin)) * 10)
     
     
+    # check out
+    describe(acs$attain_index)
+    
+    
     
   # Enrollment index
-    
-    # need population aged 0-24, not total, to recreate AmHDHI methodology
-    # NOTE: Enrollment covers ages 3+, so we are technically getting
-    #       0-3 also in denominator, but shouldn't matter much
-    scpop_vars <- c("B01001_003", "B01001_004", "B01001_005", "B01001_006", 
-                     "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
-                     "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
-                     "B01001_031", "B01001_032", "B01001_033", "B01001_034")
-    
-    scpop <- get_acs(geography = "county", variables = scpop_vars,
-                     geometry = FALSE, year = 2016,
-                     survey = "acs5", output = "wide")
-    
-    scpop <- scpop %>%
-      s
- 
-    
-    
+  
     # generate proportion
     acs <- acs %>% 
-      mutate(enroll_prop = enroll / popund25)
+      mutate(enroll_prop = enroll / popu25)
     
     # get max & min
     enrollmax <- .95
@@ -381,6 +380,9 @@ rm(list = c("test1", "test2", "test3", "votes16"))
     acs <- acs %>% 
       mutate(enroll_index = ((enroll_prop - enrollmin) / 
                                (enrollmax - enrollmin)) * 10)
+    
+    # check out
+    describe(acs$enroll_index)
     
   
   # Overall Education Index
@@ -406,6 +408,10 @@ rm(list = c("test1", "test2", "test3", "votes16"))
   acs <- acs %>% 
     mutate(inc_index = (log(incpc) - log(incmin)) / 
                        (log(incmax) - log(incmin)) * 10 )
+  
+  
+  # check out
+  describe(acs$inc_index)
   
   
   
