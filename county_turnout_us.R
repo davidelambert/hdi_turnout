@@ -302,16 +302,15 @@ rm(list = c("test1", "test2", "test3", "votes16"))
 # Methodology based on Social Science Research Council's
 # "American HDI". See PDF under resources tab at
 # http://www.measureofamerica.org/10yearsandcounting/
-# EXCEPT: geometric mean of 3 sub-indices, following UN standard HDI metodology
 # EXCEPT: Per-capita income used instead of median earnings
 
 
 
 # HEALTH INDEX
   
-  # Get max's & min's
-  lemax <- max(acs$le)
-  lemin <- min(acs$le)
+  # Goalposts from SSRC's 2016 Methodology
+  lemax <- 90
+  lemin <- 66
   
   # create index
   acs <- acs %>%
@@ -333,16 +332,17 @@ rm(list = c("test1", "test2", "test3", "votes16"))
     # then generate population proportions,
     # then aggregate attainment score
     acs <- acs %>%
-      mutate(hsplus = hs + ged + some1 + some2 + assoc,
-             grad = mast + prof + phd,
-             hsplus_prop = hsplus / poptotal,
-             bacc_prop = bacc / poptotal,
-             grad_prop = grad / poptotal,
-             attain_score = hsplus_prop + bacc_prop + grad_prop)
+      mutate(hsplus = hs+ged+some1+some2+assoc+bacc+mast+prof+phd,
+             baccplus = bacc+mast+prof+phd,
+             mastplus = mast+prof+phd,
+             hsprop = hsplus / poptotal,
+             baccprop = baccplus / poptotal,
+             gradprop = mastplus / poptotal,
+             attain_score = hsprop + baccprop + gradprop)
     
-    # get max's & min's
-    attmax <- max(acs$attain_score)
-    attmin <- min(acs$attain_score)
+    # Goalposts from SSRC 2016 report
+    attmax <- 2
+    attmin <- 0.5
     
     # create attainment index
     acs <- acs %>%
@@ -352,13 +352,30 @@ rm(list = c("test1", "test2", "test3", "votes16"))
     
   # Enrollment index
     
+    # need population aged 0-24, not total, to recreate AmHDHI methodology
+    # NOTE: Enrollment covers ages 3+, so we are technically getting
+    #       0-3 also in denominator, but shouldn't matter much
+    scpop_vars <- c("B01001_003", "B01001_004", "B01001_005", "B01001_006", 
+                     "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
+                     "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
+                     "B01001_031", "B01001_032", "B01001_033", "B01001_034")
+    
+    scpop <- get_acs(geography = "county", variables = scpop_vars,
+                     geometry = FALSE, year = 2016,
+                     survey = "acs5", output = "wide")
+    
+    scpop <- scpop %>%
+      s
+ 
+    
+    
     # generate proportion
     acs <- acs %>% 
-      mutate(enroll_prop = enroll / poptotal)
+      mutate(enroll_prop = enroll / popund25)
     
     # get max & min
-    enrollmax <- max(acs$enroll_prop)
-    enrollmin <- min(acs$enroll_prop)
+    enrollmax <- .95
+    enrollmin <- .6
     
     # create enrollment index
     acs <- acs %>% 
