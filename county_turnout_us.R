@@ -16,8 +16,8 @@ options(tigris_use_cache = TRUE)
 vars16 <- load_variables(2016, "acs5", cache = T)
 
 # variables
-acs_vars <- c("B01003_001", "B09001_001", "B19083_001", "B19001_001", 
-              "B19313_001", "B01002_001",
+acs_vars <- c("B01001_001", "B09001_001", "B01002_001",
+              "B19083_001", "B20017_001", "B19301_001",
               # Attainment
               "B15003_017", "B15003_018", "B15003_019", "B15003_020",
               "B15003_021", "B15003_022", "B15003_023", "B15003_024",
@@ -46,13 +46,13 @@ acs_bu <- acs
 
 # descriptive names and drop MOEs
 acs <- acs %>% 
-  rename(poptotal = B01003_001E,
+  rename(poptotal = B01001_001E,
          popu18 = B09001_001E,
          pop3o = B14001_001E,
-         gini = B19083_001E,
-         hhinc = B19001_001E,
-         aginc = B19313_001E,
          medage = B01002_001E,
+         gini = B19083_001E,
+         incmed = B20017_001E,
+         incpc = B19301_001E,
          hs = B15003_017E,
          ged = B15003_018E,
          some1 = B15003_019E,
@@ -65,18 +65,18 @@ acs <- acs %>%
          enroll = B14001_002E,
          county_full = NAME) %>% 
   mutate(popu25 = B01001_003E + B01001_004E + B01001_005E + B01001_006E + 
-                    B01001_007E + B01001_008E + B01001_009E + B01001_010E + 
-                    B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
-                    B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>%
+                  B01001_007E + B01001_008E + B01001_009E + B01001_010E + 
+                  B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
+                  B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>%
   mutate(pop324 = popu25 - (poptotal - pop3o)) %>% 
-  select(GEOID, county_full, poptotal, popu18, popu25, pop3o, pop324,
-         gini, hhinc,aginc, medage, hs, ged, some1, some2, assoc,
+  select(GEOID, county_full, poptotal, popu18, popu25, pop3o, pop324, medage,
+         incmed, incpc, gini, hs, ged, some1, some2, assoc,
          bacc, mast, prof, phd, enroll, geometry) %>%
   separate(county_full, sep = ", ", into = c("county_only", "state_only"),
            remove = FALSE, extra = "warn", fill = "warn")
 
 
-glimpse(acs)
+# glimpse(acs)
 
 # MATCH TO FIPS CODES =====
 
@@ -101,15 +101,15 @@ fips_codes$state_only_fips <- fips_codes$state_name
 fips_codes <- within(fips_codes, county_full <- paste(county, state_name,
                                                       sep = ", "))
 
-# Try Join -- doesn't work
-# join1 <- inner_join(acs, fips_codes, by = "county_full")
-
-
-# try double join -- FUCK YEAH THIS SHIT WORKS!
-# (except for the 3 mislabelled counties)
-# join2 <- inner_join(acs, fips_codes,
-#                    by = c("county_only" = "county_only_fips",
-#                           "state_only" = "state_only_fips"))
+    # Try Join -- doesn't work
+    # join1 <- inner_join(acs, fips_codes, by = "county_full")
+    
+    
+    # try double join -- FUCK YEAH THIS SHIT WORKS!
+    # (except for the 3 mislabelled counties)
+    # join2 <- inner_join(acs, fips_codes,
+    #                    by = c("county_only" = "county_only_fips",
+    #                           "state_only" = "state_only_fips"))
 
 # rename 3 bad counties as established in section OOPS
 acs$county_only[acs$county_only == "Do?a Ana County"] <- "Dona Ana County"
@@ -117,11 +117,11 @@ acs$county_only[acs$county_only == "LaSalle Parish"] <- "La Salle Parish"
 acs$county_only[acs$county_only == "Petersburg Borough"] <- "Petersburg Census Area"
 
 
-# redo as above w/ renames -- FUCK THE FUCK YEAH!!!!!!!!
-# some inexact matches, but the observations match up!!!!!
-# join3 <- inner_join(acs, fips_codes,
-#                     by = c("county_only" = "county_only_fips",
-#                            "state_only" = "state_only_fips"))
+    # redo as above w/ renames -- FUCK THE FUCK YEAH!!!!!!!!
+    # some inexact matches, but the observations match up!!!!!
+    # join3 <- inner_join(acs, fips_codes,
+    #                     by = c("county_only" = "county_only_fips",
+    #                            "state_only" = "state_only_fips"))
 
 
 acs <- inner_join(acs, fips_codes,
@@ -133,13 +133,14 @@ acs <- inner_join(acs, fips_codes,
 acs <- acs %>% 
   select(GEOID, state, state_name, state_code, 
          county, county_code, county_full.x,
-         poptotal, popu18, popu25, pop3o, pop324, gini, hhinc, aginc,
-         medage, hs, ged, some1, some2, assoc, bacc, 
-         mast, prof, phd, enroll, geometry) %>% 
+         poptotal, popu18, popu25, pop3o, pop324, medage,
+         incmed, incpc, gini, hs, ged, some1, some2, assoc,
+         bacc, mast, prof, phd, enroll, geometry) %>% 
   filter(state %in% statedc) %>% 
   rename(county_state = county_full.x) %>%
   mutate(fips = as.numeric(GEOID))
 
+# glimpse(acs)
 
 # clear experiments
 rm(fips_codes)
@@ -272,12 +273,12 @@ votes16 <- votes16 %>%
   select(combined_fips, total_votes) %>% 
   rename(fips = combined_fips) 
 
-# test merge
-# test1 <- inner_join(acs, votes16, by = "fips") # lose 3 obs
-# test2 <- anti_join(acs, votes16, by = "fips")  # these are the three lost
-# test3 <- left_join(acs, votes16, by = "fips")
-# which(is.na(test3$total_votes))
-# View(test3[c(82, 549), ])  # expected via Test 2 & Oglala Lakota correction
+    # test merge
+    # test1 <- inner_join(acs, votes16, by = "fips") # lose 3 obs
+    # test2 <- anti_join(acs, votes16, by = "fips")  # these are the three lost
+    # test3 <- left_join(acs, votes16, by = "fips")
+    # which(is.na(test3$total_votes))
+    # View(test3[c(82, 549), ])  # expected via Test 2 & Oglala Lakota correction
 
 
 # Merge
@@ -382,37 +383,57 @@ rm("votes16")
   
     # generate proportion
     acs <- acs %>% 
-      mutate(enroll_prop = enroll / pop3o)
+      mutate(enroll_prop = enroll / pop324)
     
     describe(acs$enroll_prop)
     
-    # need to get goalposts from 2009-2013 5 yr ACS b/c
-    # SSRC methodology is opaque
-    enroll13_vars <- c("B14001_001","B14001_002")
-
-    # pull from census API
-    enroll13 <- get_acs(geography = "county", variables = enroll13_vars, 
-                        geometry = FALSE, year = 2013,
-                        survey = "acs5", output = "wide")
+    # Attempt to establish goalposts since SSRA's methodology is opaque. 
+    # Failed to replicate SSRA Goalposts.
+    # Establishing Slightly Arbitrary Goalposts to to avoid 0 scores
+    # # need to get goalposts from 2001-2005 5 yr ACS b/c
+    # # SSRC methodology is opaque
+    # enroll10_vars <- c("B01001_001", "B14001_001", "B14001_002",
+    #                    "B01001_003", "B01001_004", "B01001_005", "B01001_006", 
+    #                    "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
+    #                    "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
+    #                    "B01001_031", "B01001_032", "B01001_033", "B01001_034")
+    # 
+    # # pull from census API
+    # enroll10 <- get_acs(geography = "county", variables = enroll10_vars, 
+    #                     geometry = FALSE, year = 2010,
+    #                     survey = "acs5", output = "wide")
+    # 
+    # # create proportion & select
+    # enroll10 <- enroll10 %>%
+    #   rename(poptotal_10 = B01001_001E,
+    #          enroll_10 = B14001_002E,
+    #          pop3o_10 = B14001_001E) %>% 
+    #   mutate(popu25_10 = B01001_003E + B01001_004E + B01001_005E +
+    #                      B01001_006E + B01001_007E + B01001_008E +
+    #                      B01001_009E + B01001_010E + B01001_027E +
+    #                      B01001_028E + B01001_029E + B01001_030E + 
+    #                      B01001_031E + B01001_032E + B01001_033E +
+    #                      B01001_034E,
+    #          
+    #          pop324_10 = popu25_10 - (poptotal_10 - pop3o_10),
+    #          enroll_prop_10 = enroll_10 / pop324_10
+    #          )
+    # 
+    # describe(enroll10$enroll_prop_10) # weird, got some Infinity?
+    # which(enroll10$enroll_prop_10 == Inf)
+    # View(enroll10[340,])  # The Hawaii leper colony. replace w/ NA
+    # enroll10[340, "enroll_prop_10"] <- NA
+    # 
+    # describe(enroll10$enroll_prop_10)
+    # describe(acs$enroll_prop)
+    # # minimum is actuall higher in 2010!
+    # # use somewhat arbitrary min & min that will avoid 0's
     
-    # create proportion & select
-    enroll13 <- enroll13 %>% 
-      rename(enroll13 = B14001_002E,
-             pop3o13 = B14001_001E) %>% 
-      mutate(enroll_prop13 = enroll13 / pop3o13) %>% 
-      select(GEOID, enroll_prop13)
     
-    # merge
-    acs <- left_join(acs, enroll13, by = "GEOID")
-    
-    which(is.na(acs$enroll_prop13))
-    describe(acs$enroll_prop13)
-    describe(acs$enroll_prop)
-    
-    
-    # get max & min
+    # SET goalposts, avoiding 0 scores, using closest possible to
+    # SSRC variables
     enrollmax <- .95
-    enrollmin <- .6
+    enrollmin <- .4
     
     # create enrollment index
     acs <- acs %>% 
@@ -422,26 +443,42 @@ rm("votes16")
     # check out
     describe(acs$enroll_index)
     
+    # topcode at 10, following SSRA
+    acs$enroll_index[acs$enroll_index > 10] <- 10
+    
+    describe(acs$enroll_index)
+    
   
   # Overall Education Index
     acs <- acs %>% 
       mutate(ed_index = ((2/3) * attain_index) + ((1/3) * enroll_index) )
  
     
-    describe(acs$enroll_index)
+    describe(acs$ed_index)
     
     
     
     
 # Income index
     
-  # generate per-capita income
-  acs <- acs %>%
-    mutate(incpc = aginc / poptotal)
+  # check out median income
+  describe(acs$incmed)
+  # $5223 seems EXTREMELY LOW! -- check out
+  acs$county_state[acs$incmed == min(acs$incmed, na.rm = T)]
+  # Lexington City, VA Can't possibly be right:
+    # ONLY city limits, hiking, tourism, etc......
   
-  # get max & min
+  # use per-capita income instead?
+  describe(acs$incpc)
+  # 9286 still low, but seems more reasonable
+  acs$county_state[acs$incpc == min(acs$incpc)]
+  # Oglala Lakota, SD -- makes more sense!
+  # Also no NA's -- use this!
+  
+  
+  # SET max & min, lowering min to avoid 0's
   incmax <- max(acs$incpc)
-  incmin <- min(acs$incpc)
+  incmin <- 9000
   
   # create index
   acs <- acs %>% 
@@ -462,7 +499,9 @@ rm("votes16")
     mutate(hdi = (health_index * ed_index * inc_index) ^ (1/3) )
   
  
-  
+  describe(acs$hdi)
+  ggplot(acs) + geom_histogram(aes(x = inc_index), bins = 51)
+  # looks good!!
    
 
 # Write Out =========
