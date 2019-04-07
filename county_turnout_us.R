@@ -17,9 +17,14 @@ vars16 <- load_variables(2016, "acs5", cache = T)
 
 # variables
 acs_vars <- c("B01003_001", "B09001_001", "B19083_001", "B19001_001", 
-              "B19313_001", "B01002_001", "B15003_017", "B15003_018",
-              "B15003_019", "B15003_020", "B15003_021", "B15003_022", 
-              "B15003_023", "B15003_024", "B15003_025", "B14001_002",
+              "B19313_001", "B01002_001",
+              # Attainment
+              "B15003_017", "B15003_018", "B15003_019", "B15003_020",
+              "B15003_021", "B15003_022", "B15003_023", "B15003_024",
+              "B15003_025",
+              # Pop over 3 and Enrollment 
+              "B14001_001","B14001_002",
+              # Population under 25
               "B01001_003", "B01001_004", "B01001_005", "B01001_006", 
               "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
               "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
@@ -36,13 +41,14 @@ acs_bu <- acs
 
 # write out as csv in case census API breaks
 # leave commented unless updating pull
-#  write.csv(acs, file = "acs_pull.csv")
+# write.csv(acs, file = "acs_pull.csv")
 
 
 # descriptive names and drop MOEs
 acs <- acs %>% 
   rename(poptotal = B01003_001E,
          popu18 = B09001_001E,
+         pop3o = B14001_001E,
          gini = B19083_001E,
          hhinc = B19001_001E,
          aginc = B19313_001E,
@@ -61,15 +67,16 @@ acs <- acs %>%
   mutate(popu25 = B01001_003E + B01001_004E + B01001_005E + B01001_006E + 
                     B01001_007E + B01001_008E + B01001_009E + B01001_010E + 
                     B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
-                    B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>% 
-  select(GEOID, county_full, poptotal, popu18, popu25, gini, hhinc, aginc,
-         medage, hs, ged, some1, some2, assoc, bacc, mast, prof,
-         phd, enroll, geometry) %>%
+                    B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>%
+  mutate(pop324 = popu25 - (poptotal - pop3o)) %>% 
+  select(GEOID, county_full, poptotal, popu18, popu25, pop3o, pop324,
+         gini, hhinc,aginc, medage, hs, ged, some1, some2, assoc,
+         bacc, mast, prof, phd, enroll, geometry) %>%
   separate(county_full, sep = ", ", into = c("county_only", "state_only"),
            remove = FALSE, extra = "warn", fill = "warn")
 
 
-
+glimpse(acs)
 
 # MATCH TO FIPS CODES =====
 
@@ -91,7 +98,7 @@ fips_codes$state_only_fips <- fips_codes$state_name
 
 
 # cat state and column
-fips_codes <- within(fips_codes, county_full <- paste(county, state.name,
+fips_codes <- within(fips_codes, county_full <- paste(county, state_name,
                                                       sep = ", "))
 
 # Try Join -- doesn't work
@@ -126,7 +133,7 @@ acs <- inner_join(acs, fips_codes,
 acs <- acs %>% 
   select(GEOID, state, state_name, state_code, 
          county, county_code, county_full.x,
-         poptotal, popu18, popu25, gini, hhinc, aginc,
+         poptotal, popu18, popu25, pop3o, pop324, gini, hhinc, aginc,
          medage, hs, ged, some1, some2, assoc, bacc, 
          mast, prof, phd, enroll, geometry) %>% 
   filter(state %in% statedc) %>% 
@@ -276,22 +283,25 @@ votes16 <- votes16 %>%
 # Merge
 acs <- left_join(acs, votes16, by = "fips")
 
+
+# find the missings
+which(is.na(acs$total_votes))
+
 # Kusilvak Census Area, AK correction, imputed from:
 # https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
 # Archived on Wayback Machine:
 # https://web.archive.org/web/20190404123624/https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-acs[82, 27] <- 2228
+acs[82, 29] <- 2228
 
 
 # Kawalao County, HI correction, based unsourced on (but only 20 votes)
 # https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
 # Archived on Wayback Machine
 # https://web.archive.org/web/20190404125721/https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-acs[549, 27] <- 20
+acs[549, 29] <- 20
 
 
-# All Good!
-which(is.na(acs$total_votes))
+which(is.na(acs$total_votes))  # All Good!
 
 
 # CREATE TURNOUT VARIABLE =====
@@ -304,7 +314,7 @@ which(is.na(acs$turnout))  # all good!
 
 
 # clean up 
-rm(list = c("test1", "test2", "test3", "votes16"))
+rm("votes16")
 
 # CREATE HDI =====
 
@@ -352,6 +362,8 @@ rm(list = c("test1", "test2", "test3", "votes16"))
              gradprop = mastplus / (poptotal - popu25),
              attain_score = hsprop + baccprop + gradprop)
     
+    describe(acs$attain_score)
+    
     # Goalposts from SSRC 2016 report
     attmax <- 2
     attmin <- 0.5
@@ -370,7 +382,33 @@ rm(list = c("test1", "test2", "test3", "votes16"))
   
     # generate proportion
     acs <- acs %>% 
-      mutate(enroll_prop = enroll / popu25)
+      mutate(enroll_prop = enroll / pop3o)
+    
+    describe(acs$enroll_prop)
+    
+    # need to get goalposts from 2009-2013 5 yr ACS b/c
+    # SSRC methodology is opaque
+    enroll13_vars <- c("B14001_001","B14001_002")
+
+    # pull from census API
+    enroll13 <- get_acs(geography = "county", variables = enroll13_vars, 
+                        geometry = FALSE, year = 2013,
+                        survey = "acs5", output = "wide")
+    
+    # create proportion & select
+    enroll13 <- enroll13 %>% 
+      rename(enroll13 = B14001_002E,
+             pop3o13 = B14001_001E) %>% 
+      mutate(enroll_prop13 = enroll13 / pop3o13) %>% 
+      select(GEOID, enroll_prop13)
+    
+    # merge
+    acs <- left_join(acs, enroll13, by = "GEOID")
+    
+    which(is.na(acs$enroll_prop13))
+    describe(acs$enroll_prop13)
+    describe(acs$enroll_prop)
+    
     
     # get max & min
     enrollmax <- .95
@@ -390,6 +428,7 @@ rm(list = c("test1", "test2", "test3", "votes16"))
       mutate(ed_index = ((2/3) * attain_index) + ((1/3) * enroll_index) )
  
     
+    describe(acs$enroll_index)
     
     
     
