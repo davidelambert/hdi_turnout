@@ -16,13 +16,15 @@ options(tigris_use_cache = TRUE)
 vars16 <- load_variables(2016, "acs5", cache = T)
 
 # variables
-acs_vars <- c("B01001_001", "B09001_001", "B01002_001",
+acs_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
+              "B01001_001", "B09001_001", "B16008_046", "B01002_001",
+              # Gini, median earnings, per capita income
               "B19083_001", "B20017_001", "B19301_001",
               # Attainment
               "B15003_017", "B15003_018", "B15003_019", "B15003_020",
               "B15003_021", "B15003_022", "B15003_023", "B15003_024",
               "B15003_025",
-              # Pop over 3 and Enrollment 
+              # Pop over 3, Enrollment 
               "B14001_001","B14001_002",
               # Population under 25
               "B01001_003", "B01001_004", "B01001_005", "B01001_006", 
@@ -48,6 +50,7 @@ acs_bu <- acs
 acs <- acs %>% 
   rename(poptotal = B01001_001E,
          popu18 = B09001_001E,
+         noncit = B16008_046E,
          pop3o = B14001_001E,
          medage = B01002_001E,
          gini = B19083_001E,
@@ -69,8 +72,8 @@ acs <- acs %>%
                   B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
                   B01001_031E + B01001_032E + B01001_033E + B01001_034E) %>%
   mutate(pop324 = popu25 - (poptotal - pop3o)) %>% 
-  select(GEOID, county_full, poptotal, popu18, popu25, pop3o, pop324, medage,
-         incmed, incpc, gini, hs, ged, some1, some2, assoc,
+  select(GEOID, county_full, poptotal, noncit, popu18, popu25, pop3o, pop324,
+         medage, incmed, incpc, gini, hs, ged, some1, some2, assoc,
          bacc, mast, prof, phd, enroll, geometry) %>%
   separate(county_full, sep = ", ", into = c("county_only", "state_only"),
            remove = FALSE, extra = "warn", fill = "warn")
@@ -130,15 +133,15 @@ acs <- inner_join(acs, fips_codes,
 
 
 # rename & clean up
-acs <- acs %>% 
-  select(GEOID, state, state_name, state_code, 
+acs <- acs %>%
+  mutate(fips = as.numeric(GEOID)) %>% 
+  select(GEOID, fips, state, state_name, state_code, 
          county, county_code, county_full.x,
-         poptotal, popu18, popu25, pop3o, pop324, medage,
+         poptotal, noncit, popu18, popu25, pop3o, pop324, medage,
          incmed, incpc, gini, hs, ged, some1, some2, assoc,
          bacc, mast, prof, phd, enroll, geometry) %>% 
   filter(state %in% statedc) %>% 
-  rename(county_state = county_full.x) %>%
-  mutate(fips = as.numeric(GEOID))
+  rename(county_state = county_full.x)
 
 # glimpse(acs)
 
@@ -292,14 +295,14 @@ which(is.na(acs$total_votes))
 # https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
 # Archived on Wayback Machine:
 # https://web.archive.org/web/20190404123624/https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-acs[82, 29] <- 2228
+acs[82, 30] <- 2228
 
 
 # Kawalao County, HI correction, based unsourced on (but only 20 votes)
 # https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
 # Archived on Wayback Machine
 # https://web.archive.org/web/20190404125721/https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-acs[549, 29] <- 20
+acs[549, 30] <- 20
 
 
 which(is.na(acs$total_votes))  # All Good!
@@ -308,7 +311,7 @@ which(is.na(acs$total_votes))  # All Good!
 # CREATE TURNOUT VARIABLE =====
 
 acs <- acs %>% 
-  mutate(vap = poptotal - popu18,
+  mutate(vap = poptotal - popu18 - noncit,
          turnout = total_votes / vap)
 
 which(is.na(acs$turnout))  # all good!
@@ -431,7 +434,8 @@ rm("votes16")
     
     
     # SET goalposts, avoiding 0 scores, using closest possible to
-    # SSRC variables
+    # SSRC variables. Max is good, but setting min to 0.4 to be below
+    # The 0.45 observed minimum
     enrollmax <- .95
     enrollmin <- .4
     
@@ -443,7 +447,7 @@ rm("votes16")
     # check out
     describe(acs$enroll_index)
     
-    # topcode at 10, following SSRA
+    # topcode at 10, following SSRA methods
     acs$enroll_index[acs$enroll_index > 10] <- 10
     
     describe(acs$enroll_index)
@@ -500,7 +504,7 @@ rm("votes16")
   
  
   describe(acs$hdi)
-  ggplot(acs) + geom_histogram(aes(x = inc_index), bins = 51)
+  ggplot(acs) + geom_histogram(aes(x = hdi), bins = 51)
   # looks good!!
    
 
