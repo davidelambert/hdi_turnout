@@ -317,6 +317,18 @@ acs <- acs %>%
 which(is.na(acs$turnout))  # all good!
 
 
+
+# investigate
+describe(acs$turnout)
+summary(acs$turnout)
+# several values over 100! W, as they say, TF?
+to_fuckups <- which(acs$turnout > 100)
+View(acs[c(to_fuckups),])
+# all in Alaska? AK & HI have been consistent problems!
+# maybe jsut go w/  lower 48 for analysis.
+# just say AK & HI have been consistent outliers???
+
+
 # clean up 
 rm("votes16")
 
