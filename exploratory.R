@@ -11,18 +11,19 @@ options(tigris_use_cache = TRUE)
 
 
 # get all versions
-load("acs_shift.Rdata")
-acs_only <- read_csv("acs_.csv")
+load("acs_.Rdata")
+# acs_only <- read_csv("acs_.csv")
 
 # EXPLORATORY =====
 
 hdistats <- describe(acs$hdi)
 hdistats # whoa! zero's
 
-which(acs$hdi == 0)
-View(acs[c(2413, 3019), ])  # Ok these are poor/ unhealthy AF
-which(acs$health_index == 0)  # McDowell, WV
-which(acs$inc_index == 0)  # Oglala Lakota, SD
+  # ZEROS have been removed, the below is not needed
+  # which(acs$hdi == 0)
+  # View(acs[c(2413, 3019), ])  # Ok these are poor/ unhealthy AF
+  # which(acs$health_index == 0)  # McDowell, WV
+  # which(acs$inc_index == 0)  # Oglala Lakota, SD
 
 
 
@@ -32,7 +33,7 @@ hdinorm <- rnorm(3142, mean = hdistats$mean, sd = hdistats$sd)
 
 ggplot(data = acs, mapping = aes(x = hdi)) +
   geom_histogram(bins = 51, mapping = aes(y = ..density..),
-                 fill = "navyblue") +
+                 fill = "navyblue", color = "white") +
   geom_density(color = "orange", size = 0.8) +
   geom_density(mapping = aes(x = hdinorm),
                color = "hotpink", size = 0.8) +
@@ -67,8 +68,6 @@ acs %>% ggplot(mapping = aes(x = hdi, y = gini)) +
   theme_minimal()
   
   
-# nope!  
-cor(acs$hhinc, acs$turnout) 
 
 # weak, but better & expected
 cor(acs$incpc, acs$turnout)

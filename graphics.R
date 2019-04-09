@@ -45,9 +45,8 @@ ginimap
 # HDI  map
 hdimap <- acs_shift %>% 
   ggplot() +
-  geom_sf(aes(fill = hdi, color = hdi)) +
+  geom_sf(aes(fill = hdi, color = "white")) +
   scale_fill_viridis_c(name = "HDI", option = "plasma") + 
-  scale_color_viridis_c(name = "HDI", option = "plasma") +
   labs(
     title = "Modified HDI by County, 2016", 
     caption = "Data: 2016 ACS 5-year Estimates, US Census Bureau"
@@ -73,6 +72,7 @@ lower48 <- acs %>%
   filter(state != "AK" & state != "HI")
 
 color_pal <- colorNumeric(palette = "viridis", domain = acs$hdi)
+
 lower48 %>% 
   st_transform(crs = "+proj=longlat +datum=WGS84") %>%
   leaflet(width = "100%") %>%
@@ -88,10 +88,11 @@ lower48 %>%
     fillOpacity = 0.7,
     color = ~color_pal(hdi)
   ) %>% 
-  addLegend(
-    position = "bottomleft",
-    pal = color_pal,
-    values = ~hdi,
-    title = "Modified HDI",
-    opacity = 1
-  )
+  addPolylines(color = "white", weight = .7) # %>% 
+  # addLegend(
+  #   position = "bottomleft",
+  #   pal = color_pal,
+  #   values = ~hdi,
+  #   title = "Modified HDI",
+  #   opacity = 1
+  # )
