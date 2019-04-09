@@ -329,6 +329,7 @@ View(acs[c(to_fuckups),])
 # just say AK & HI have been consistent outliers???
 
 
+
 # clean up 
 rm("votes16")
 
