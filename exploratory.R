@@ -17,6 +17,7 @@ load("acs_.Rdata")
 # EXPLORATORY =====
 
 hdistats <- describe(acs$hdi)
+hdistats # whoa! zero's
 
   # ZEROS have been removed, the below is not needed
   # which(acs$hdi == 0)
@@ -25,8 +26,6 @@ hdistats <- describe(acs$hdi)
   # which(acs$inc_index == 0)  # Oglala Lakota, SD
 
 
-
-# DISTROPOTS =====
 
 # histogram w/ eqivalent normal & boxplot
 # close to normal, w/ a few outliers
@@ -41,52 +40,12 @@ ggplot(data = acs, mapping = aes(x = hdi)) +
   geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
   theme_minimal()
 
-# box
 ggplot() +
   geom_boxplot(data = acs, mapping = aes(y = hdi)) + 
   coord_flip() + theme_minimal()
 
 
-# histogram w/ eqivalent normal 
-ginistats <- describe(acs$gini)
 
-gininorm <- rnorm(3142, mean = ginistats$mean, sd = ginistats$sd)
-
-ggplot(data = acs, mapping = aes(x = gini)) +
-  geom_histogram(bins = 51, mapping = aes(y = ..density..),
-                 fill = "navyblue", color = "white") +
-  geom_density(color = "orange", size = 0.8) +
-  geom_density(mapping = aes(x = gininorm),
-               color = "hotpink", size = 0.8) +
-  geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
-  theme_minimal()
-
-
-
-
-# histogram w/ eqivalent normal
-turnoutstats <- describe(acs$turnout)
-
-turnoutnorm <- rnorm(3142, mean = turnoutstats$mean, sd = turnoutstats$sd)
-
-ggplot(data = acs, mapping = aes(x = turnout)) +
-  geom_histogram(bins = 51, mapping = aes(y = ..density..),
-                 fill = "navyblue", color = "white") +
-  geom_density(color = "orange", size = 0.8) +
-  geom_density(mapping = aes(x = turnoutnorm),
-               color = "hotpink", size = 0.8) +
-  geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
-  theme_minimal()
-
-# whoa that's absolutely not normal - not even close
-# just check the histogram
-ggplot(data = acs, mapping = aes(x = turnout)) +
-  geom_histogram(bins = 500, mapping = aes(y = ..density..),
-                 fill = "navyblue", color = "white")
-
-
-
-# CORRELATIONS & SCATTERS ====
 
 
 
@@ -112,11 +71,6 @@ acs %>% ggplot(mapping = aes(x = hdi, y = gini)) +
 
 # weak, but better & expected
 cor(acs$incpc, acs$turnout)
-cor(acs$hdi, acs$turnout)
-cor(acs$gini, acs$turnout)
-cor(acs$baccprop, acs$turnout)
-
-
 
 
 
@@ -137,13 +91,7 @@ cor(acs$baccprop, acs$turnout)
     geom_smooth(se = FALSE, color = "orange", size = 2) +
     geom_smooth(se = FALSE, color = "hotpink", size = 2, method ="lm") +
     theme_minimal()
-
   
-  
-cor(hditrim$hdi, hditrim$turnout)
-cor(acs$hdi, acs$turnout)
-cor(hditrim$gini, hditrim$turnout)
-
 
 
 
