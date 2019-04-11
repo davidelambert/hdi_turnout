@@ -138,85 +138,23 @@ rm(fips_codes)
 
 # MERGE IN LIFE EXPECTANCY =====
 # SOURCE: Institute for Health Metrics and Evaluation
-#         http://www.healthdata.org/us-health/data-download
+# http://ghdx.healthdata.org/record/ihme-data/united-states-life-expectancy-and-age-specific-mortality-risk-county-1980-2014
+# Archived 4/11/2019 at:
+# https://web.archive.org/web/20190411183702/http://ghdx.healthdata.org/record/ihme-data/united-states-life-expectancy-and-age-specific-mortality-risk-county-1980-2014
 
 # import
-le <- read_csv("sources/IHME_county_data_EDIT.csv")
+le <- read_csv("sources/IHME_USA_COUNTY_LE_EDIT.csv") %>% 
+  select(fips, le)
 
 # # need to filter le my state name (don't have abbreviations)
-# continental_names <- state.name
-# which(continental_names == "Alaska")
-# continental_names <- continental_names[-2]
-# which(continental_names == "Hawaii")
-# continental_names <- continental_names[-11]
-# which(continental_names == "Delaware")
-# continental_names <- append(continental_names, "District of Columbia", after = 8)
 
 
-# county names don't match perfectly, so alpha sort by county, state
-# for each & match by row.
-fuckak <- arrange(fuckak, state_name, county)
-le <- le %>% 
-  filter(State != "Alaska" & State != "Hawaii")
-le <- arrange(le, State, County)
-
-
-test <- fuckak %>%
-  mutate(cosub = gsub("\\s*\\w*$", "", fuckak$county))
-
-test <- merge(test, le, by = c("cosub" = "County",
-                                   "state" = "State"))
-
-
-test <- gsub("\\s*\\w*$", "", fuckak$county)
-le$co <- test
-
-# unweighted average of male & female life expectancy
-# spot checked against individual datasets, & works
-# check before removing if need verification
-fuckak <- fuckak %>%
-  mutate(le = (le$male2010 + le$female2010) / 2)
+fuckak <- left_join(fuckak, le, by = "fips")
 
 rm(le)
 
 
 
-# # MORTALITY - NO LONGER NEEDED! ====================
-# # MERGE CDC CRUDE MORTALITY SCORES AS AN ALTERNATIVE TO LIFE EXPECTANCY
-# # Source: CDC Wonder Compressed Mortality 1999-2016, selecting 2016 only
-# # https://wonder.cdc.gov/
-# 
-# 
-# 
-# # import
-# mort <- read_delim("sources/CDC_crude_mortality_2016.txt", delim = "\t",
-#                    col_types = "lcdddd")
-# 
-# # rename to fips
-# mort$fips <- mort$`County Code`
-# 
-# # rename `Crude Rate`
-# mort$mort <- mort$`Crude Rate`
-# 
-# # subset so don't need to clean up
-# mort <- mort[, c("fips", "mort")]
-# 
-# # merge
-# fuckak <- left_join(fuckak, mort, by = "fips")
-# 
-# # check - looks ok, slight difference but mort has more rows than fuckak
-# sum(is.na(fuckak$mort))
-# sum(is.na(mort$mort))
-# 
-# 
-# rm(mort)
- 
- 
- 
- 
- 
- 
- 
 # 2016 VOTE TOTALS =====
 
 # compiled by Tony McGovern, craped from townhall.com results
@@ -239,36 +177,13 @@ votes16 <- votes16 %>%
   select(combined_fips, total_votes) %>% 
   rename(fips = combined_fips) 
 
-    # test merge
-    # test1 <- inner_join(fuckak, votes16, by = "fips") # lose 3 obs
-    # test2 <- anti_join(fuckak, votes16, by = "fips")  # these are the three lost
-    # test3 <- left_join(fuckak, votes16, by = "fips")
-    # which(is.na(test3$total_votes))
-    # View(test3[c(82, 549), ])  # expected via Test 2 & Oglala Lakota correction
-
 
 # Merge
 fuckak <- left_join(fuckak, votes16, by = "fips")
 
 
-# find the missings
+# find the missings - good now b/c no AK, HI
 which(is.na(fuckak$total_votes))
-
-# Kusilvak Census Area, AK correction, imputed from:
-# https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-# Archived on Wayback Machine:
-# https://web.archive.org/web/20190404123624/https://rrhelections.com/index.php/2018/02/02/alaska-results-by-county-equivalent-1960-2016/
-fuckak[82, 30] <- 2228
-
-
-# Kawalao County, HI correction, based unsourced on (but only 20 votes)
-# https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-# Archived on Wayback Machine
-# https://web.archive.org/web/20190404125721/https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Hawaii
-fuckak[549, 30] <- 20
-
-
-which(is.na(fuckak$total_votes))  # All Good!
 
 
 # CREATE TURNOUT VARIABLE =====
@@ -283,15 +198,17 @@ which(is.na(fuckak$turnout))  # all good!
 
 # investigate
 describe(fuckak$turnout)
-summary(fuckak$turnout)
-# several values over 100! W, as they say, TF?
-to_fuckups <- which(fuckak$turnout > 100)
+# values over 1? W, as they say, TF?
+to_fuckups <- which(fuckak$turnout > 1)
 View(fuckak[c(to_fuckups),])
-# all in Alaska? AK & HI have been consistent problems!
-# maybe jsut go w/  lower 48 for analysis.
-# just say AK & HI have been consistent outliers???
-
-
+# 4 low-population counties, ACS estimates probably off.
+# replace with alternative maximum.
+describe(fuckak$turnout[fuckak$turnout <= 1]) # max is .99
+fuckak$turnout[fuckak$turnout > 1] <- 0.99  # replace
+describe(fuckak$turnout)  # loks good!
+# approximately normal!
+ggplot(data = fuckak) +
+  geom_histogram(aes(x = turnout), bins = 51)
 
 # clean up 
 rm("votes16")
