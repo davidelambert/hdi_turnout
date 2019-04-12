@@ -10,7 +10,7 @@ options(tigris_class = "sf")
 options(tigris_use_cache = TRUE)
 
 
-# PULL COUNTY-LEVEL fuckak VARS ====
+# PULL COUNTY-LEVEL ACS VARS ====
 
 # all available variables for fuckak 5-year 20212-2016
 vars16 <- load_variables(2016, "acs5", cache = T)

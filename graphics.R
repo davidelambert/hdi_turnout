@@ -13,14 +13,12 @@ options(tigris_use_cache = TRUE)
 
 # get all versions
 load("acs_.Rdata")
-acs_only <- read_csv("acs_.csv")
-load("acs_shift.Rdata")
-acs_shift_only <- read_csv("acs_shift.csv")
+load("fuckak_.Rdata")
 
 # GRAPHICS ====
   
 # gini  map
-ginimap <- acs_shift %>% 
+ginimap <- fuckak %>% 
   ggplot() +
   geom_sf(aes(fill = gini, color = gini)) +
   scale_fill_viridis_c(name = "Gini") + 
@@ -43,7 +41,7 @@ ginimap
 
 
 # HDI  map
-hdimap <- acs_shift %>% 
+hdimap <- fuckak %>% 
   ggplot() +
   geom_sf(aes(fill = hdi, color = "white")) +
   scale_fill_viridis_c(name = "HDI", option = "plasma") + 
@@ -67,13 +65,9 @@ hdimap
 
 # Interactive ========
 
-# Subset Lower 48
-lower48 <- acs %>%
-  filter(state != "AK" & state != "HI")
+color_pal <- colorNumeric(palette = "viridis", domain = fuckak$hdi)
 
-color_pal <- colorNumeric(palette = "viridis", domain = acs$hdi)
-
-lower48 %>% 
+fuckak %>% 
   st_transform(crs = "+proj=longlat +datum=WGS84") %>%
   leaflet(width = "100%") %>%
   addProviderTiles(provider = "CartoDB.Positron") %>% 
