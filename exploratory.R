@@ -8,6 +8,8 @@ library(stringr)
 library(plm)
 library(clubSandwich)
 library(tidyverse)
+library(plm)
+library(clubSandwich)
 options(tigris_class = "sf")
 options(tigris_use_cache = TRUE)
 
@@ -19,7 +21,11 @@ load("fuckak_.Rdata")
 # EXPLORATORY =====
 
 hdistats <- describe(fuckak$hdi)
+<<<<<<< HEAD
 hdistats 
+=======
+hdistats # whoa! zero's
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 
 
@@ -30,10 +36,17 @@ hdinorm <- rnorm(3108, mean = hdistats$mean, sd = hdistats$sd)
 
 ggplot(data = fuckak, mapping = aes(x = hdi)) +
   geom_histogram(bins = 51, mapping = aes(y = ..density..),
+<<<<<<< HEAD
                  fill = "grey70", color = "white") +
   geom_density(color = "orange", size = 1.2) +
   geom_density(mapping = aes(x = hdinorm),
                color = "seagreen", size = 1.2) +
+=======
+                 fill = "navyblue", color = "white") +
+  geom_density(color = "orange", size = 1.2) +
+  geom_density(mapping = aes(x = hdinorm),
+               color = "hotpink", size = 1.2) +
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
   theme_minimal()
 
@@ -60,14 +73,24 @@ cor(acs$hdi, acs$gini)
 # about the same
 cor(fuckak$hdi, fuckak$gini)
 
+<<<<<<< HEAD
 fuckak %>% ggplot(aes(x = hdi, y = gini)) +
+=======
+fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   geom_point(shape = 16,
              alpha = .2,
              size = 4,
              stroke = 0,
+<<<<<<< HEAD
              color = "grey70") +
   geom_smooth(se = FALSE, color = "orange", size = 1.2, method = "loess") +
   geom_smooth(se = FALSE, color = "seagreen", size = 1.2, method ="lm") +
+=======
+             color = "navyblue") +
+  geom_smooth(se = FALSE, color = "orange", size = 1.2) +
+  geom_smooth(se = FALSE, color = "hotpink", size = 1.2, method ="lm") +
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   theme_minimal()
 
 
@@ -85,6 +108,11 @@ fuckak %>% ggplot(aes(x = hdi, y = gini)) +
   cor(fuckak$hdi, fuckak$turnout)
   cor(hditrim$hdi, hditrim$turnout)
   # actually ***slightly*** weaker, but no bigs
+<<<<<<< HEAD
+  
+  # scatterplots
+  fuckak %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
+=======
   
   # scatterplots
   fuckak %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
@@ -92,6 +120,24 @@ fuckak %>% ggplot(aes(x = hdi, y = gini)) +
                alpha = .2,
                size = 4,
                stroke = 0,
+               color = "navyblue") +
+    geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
+    geom_smooth(se = FALSE, color = "hotpink", size = 1.5, method ="lm") +
+    theme_minimal() +
+    labs(title = "HDI & 2016 Turnout by County",
+         subtitle = "Excluding Alaska and Hawaii",
+         caption = "Sources: American Community Survey 2016 5-year Estimates, Institute for Health Metrics & Evaluation, MIT Election Data Lab.
+                    HDI modified from Social Science Research Council's American HDI methodology.",
+         x = "HDI", y = "Turnout")
+
+  
+  hditrim %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
+    geom_point(shape = 16,
+               alpha = .2,
+               size = 4,
+               stroke = 0,
+<<<<<<< HEAD
                color = "grey70") +
     geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
     geom_smooth(se = FALSE, color = "seagreen", size = 1.5, method ="lm") +
@@ -111,12 +157,18 @@ fuckak %>% ggplot(aes(x = hdi, y = gini)) +
                color = "grey70") +
     geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
     geom_smooth(se = FALSE, color = "seagreen", size = 1.5, method ="lm") +
+=======
+               color = "navyblue") +
+    geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
+    geom_smooth(se = FALSE, color = "hotpink", size = 1.5, method ="lm") +
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
     theme_minimal() +
     labs(title = "HDI & 2016 Turnout by County",
          subtitle = "Excluding Alaska, Hawaii, and HDI outliers",
          caption = "Sources: American Community Survey 2016 5-year Estimates, Institute for Health Metrics & Evaluation, MIT Election Data Lab.
                     HDI modified from Social Science Research Council's American HDI methodology.",
          x = "HDI", y = "Turnout")
+<<<<<<< HEAD
   
   
   
@@ -124,6 +176,15 @@ fuckak %>% ggplot(aes(x = hdi, y = gini)) +
 
   
 # basic models ====
+=======
+  
+  
+  
+  
+
+  
+# MODELS ====
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # simple OLS
 m1.0 <- lm(turnout ~ hdi, data = fuckak)
@@ -139,8 +200,11 @@ m2.1 <- lm(turnout ~ hdi + medage, data = hditrim)
 summary(m2.1)
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # 2012 Turnout ====  
 
@@ -196,7 +260,46 @@ pop12 <- pop12 %>%
 # write.csv(pop12, file = "turnout2012.csv")
 
 
+# 2012 Turnout ====  
 
+prior_vars <- c(# Total Pop, Under 18, Non-Citizen 18+
+                "B01001_001", "B09001_001", "B16008_046")
+
+
+# pull from census API
+pop12 <- get_acs(geography = "county", variables = prior_vars, 
+                 geometry = FALSE, year = 2012,
+                 survey = "acs5", output = "wide")
+pop12_bu <- pop12
+
+pop12 <- pop12 %>% 
+  rename(county_full = NAME,
+         poptotal12 = B01001_001E,
+         popu1812 = B09001_001E,
+         noncit12 = B16008_046E) %>% 
+  mutate(fips = as.numeric(GEOID),
+         vap12 = poptotal12 - popu1812 - noncit12) %>% 
+  select(GEOID, fips, county_full, poptotal12, popu1812, noncit12, vap12) %>% 
+  separate(county_full, sep = ", ", into = c("county_only", "state_only"),
+           remove = FALSE, extra = "warn", fill = "warn") %>% 
+  filter(state_only != "Alaska" & 
+          state_only != "Hawaii" & 
+          state_only != "Puerto Rico")
+
+# load vote totals from MIT
+load("sources/countypres_2000-2016.RData")
+
+# select 2012 (also only need 1 party)
+votes12 <- x %>% 
+  filter(year == 2012 & party == "democrat") %>% 
+  mutate(fips = as.numeric(FIPS)) %>% 
+  select(fips, totalvotes) %>% 
+  rename(totalvotes12 = totalvotes)
+
+# join & create turnout
+pop12 <- pop12 %>% 
+  left_join(votes12, by = "fips")  %>% 
+  mutate(turnout12 = totalvotes12 / vap12)
   
 # check out
 describe(pop12$turnout12)
@@ -229,6 +332,7 @@ m1.2 <- lm(turnout ~ hdi + turnout12, data = fuckak)
 summary(m1.2)
 m2.2 <- lm(turnout ~ hdi + turnout12, data = hditrim)
 summary(m2.2)
+<<<<<<< HEAD
 m1.3 <- lm(turnout ~ hdi + medage + turnout12, data = fuckak)
 summary(m1.3)
 m2.3 <- lm(turnout ~ hdi + medage + turnout12, data = hditrim)
@@ -415,3 +519,11 @@ hditrim <- hditrim %>%
   coeftest(m2.2)
  
 
+=======
+
+
+# cluster at state
+coef_test(m1.1, vcov = "CR2", cluster = fuckak$state, )
+
+View(fuckak[which(is.na(fuckak$state)),])
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84

@@ -13,7 +13,11 @@ options(tigris_use_cache = TRUE)
 
 # get all versions
 load("acs_.Rdata")
+<<<<<<< HEAD
 load("fuckak_.Rdata")
+=======
+load("fuckak.Rdata")
+>>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # GRAPHICS ====
   
