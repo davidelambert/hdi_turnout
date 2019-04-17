@@ -185,6 +185,15 @@ fuckak <- left_join(fuckak, votes16, by = "fips")
 # find the missings - good now b/c no AK, HI
 which(is.na(fuckak$total_votes))
 
+# but the join lost state/county name for these two counties -- weird!
+View(fuckak[which(is.na(fuckak$state)),])
+
+# fix
+fuckak[1109,3:7] <- c("LA", "Lousiana", "22", "LaSalle Parish", "059")
+fuckak[1769,3:8] <- c("NM", "New Mexico", "35", "Dona Ana County", "013",
+                      "Dona Ana County, New Mexico")
+which(is.na(fuckak$state)) # looks good!
+
 
 # CREATE TURNOUT VARIABLE =====
 
