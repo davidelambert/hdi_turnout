@@ -6,12 +6,10 @@ library(Hmisc)
 library(psych)
 library(stringr)
 library(plm)
+library(lmtest)
 library(clubSandwich)
+library(lfe)
 library(tidyverse)
-library(plm)
-library(clubSandwich)
-options(tigris_class = "sf")
-options(tigris_use_cache = TRUE)
 
 
 # get all versions
@@ -20,33 +18,19 @@ load("fuckak_.Rdata")
 
 # EXPLORATORY =====
 
-hdistats <- describe(fuckak$hdi)
-<<<<<<< HEAD
-hdistats 
-=======
-hdistats # whoa! zero's
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
-
-
+describe(fuckak$hdi)
 
 
 # histogram w/ eqivalent normal & boxplot
 # close to normal, w/ a few outliers
-hdinorm <- rnorm(3108, mean = hdistats$mean, sd = hdistats$sd)
+hdinorm <- rnorm(3108, mean = mean(fuckak$hdi), sd = sd(fuckak$hdi))
 
 ggplot(data = fuckak, mapping = aes(x = hdi)) +
   geom_histogram(bins = 51, mapping = aes(y = ..density..),
-<<<<<<< HEAD
                  fill = "grey70", color = "white") +
   geom_density(color = "orange", size = 1.2) +
   geom_density(mapping = aes(x = hdinorm),
                color = "seagreen", size = 1.2) +
-=======
-                 fill = "navyblue", color = "white") +
-  geom_density(color = "orange", size = 1.2) +
-  geom_density(mapping = aes(x = hdinorm),
-               color = "hotpink", size = 1.2) +
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
   theme_minimal()
 
@@ -73,24 +57,14 @@ cor(acs$hdi, acs$gini)
 # about the same
 cor(fuckak$hdi, fuckak$gini)
 
-<<<<<<< HEAD
 fuckak %>% ggplot(aes(x = hdi, y = gini)) +
-=======
-fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   geom_point(shape = 16,
              alpha = .2,
-             size = 4,
+             size = 3,
              stroke = 0,
-<<<<<<< HEAD
              color = "grey70") +
   geom_smooth(se = FALSE, color = "orange", size = 1.2, method = "loess") +
   geom_smooth(se = FALSE, color = "seagreen", size = 1.2, method ="lm") +
-=======
-             color = "navyblue") +
-  geom_smooth(se = FALSE, color = "orange", size = 1.2) +
-  geom_smooth(se = FALSE, color = "hotpink", size = 1.2, method ="lm") +
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
   theme_minimal()
 
 
@@ -108,11 +82,6 @@ fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
   cor(fuckak$hdi, fuckak$turnout)
   cor(hditrim$hdi, hditrim$turnout)
   # actually ***slightly*** weaker, but no bigs
-<<<<<<< HEAD
-  
-  # scatterplots
-  fuckak %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
-=======
   
   # scatterplots
   fuckak %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
@@ -120,27 +89,12 @@ fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
                alpha = .2,
                size = 4,
                stroke = 0,
-               color = "navyblue") +
-    geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
-    geom_smooth(se = FALSE, color = "hotpink", size = 1.5, method ="lm") +
-    theme_minimal() +
-    labs(title = "HDI & 2016 Turnout by County",
-         subtitle = "Excluding Alaska and Hawaii",
-         caption = "Sources: American Community Survey 2016 5-year Estimates, Institute for Health Metrics & Evaluation, MIT Election Data Lab.
-                    HDI modified from Social Science Research Council's American HDI methodology.",
-         x = "HDI", y = "Turnout")
-
-  
-  hditrim %>% ggplot(mapping = aes(x = hdi, y = turnout)) +
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
-    geom_point(shape = 16,
-               alpha = .2,
-               size = 4,
-               stroke = 0,
-<<<<<<< HEAD
                color = "grey70") +
     geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
     geom_smooth(se = FALSE, color = "seagreen", size = 1.5, method ="lm") +
+    scale_x_continuous(breaks = c(0, 2.5, 5.0, 7.5, 10),
+                       minor_breaks = c(1.25, 3.75, 6.25, 8.75),
+                       limits = c(0,10)) +
     theme_minimal() +
     labs(title = "HDI & 2016 Turnout by County",
          subtitle = "Excluding Alaska and Hawaii",
@@ -157,18 +111,15 @@ fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
                color = "grey70") +
     geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
     geom_smooth(se = FALSE, color = "seagreen", size = 1.5, method ="lm") +
-=======
-               color = "navyblue") +
-    geom_smooth(se = FALSE, color = "orange", size = 1.5, method = "loess") +
-    geom_smooth(se = FALSE, color = "hotpink", size = 1.5, method ="lm") +
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
+    scale_x_continuous(breaks = c(0, 2.5, 5.0, 7.5, 10),
+                       minor_breaks = c(1.25, 3.75, 6.25, 8.75),
+                       limits = c(0,10)) +
     theme_minimal() +
     labs(title = "HDI & 2016 Turnout by County",
          subtitle = "Excluding Alaska, Hawaii, and HDI outliers",
          caption = "Sources: American Community Survey 2016 5-year Estimates, Institute for Health Metrics & Evaluation, MIT Election Data Lab.
                     HDI modified from Social Science Research Council's American HDI methodology.",
          x = "HDI", y = "Turnout")
-<<<<<<< HEAD
   
   
   
@@ -176,35 +127,21 @@ fuckak %>% ggplot(mapping = aes(x = hdi, y = gini)) +
 
   
 # basic models ====
-=======
-  
-  
-  
-  
-
-  
-# MODELS ====
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # simple OLS
 m1.0 <- lm(turnout ~ hdi, data = fuckak)
-summary(m1.0)
 m2.0 <- lm(turnout ~ hdi, data = hditrim)
+summary(m1.0)
 summary(m2.0)
 
 
 # multiple
 m1.1 <- lm(turnout ~ hdi + medage, data = fuckak)
-summary(m1.1)
 m2.1 <- lm(turnout ~ hdi + medage, data = hditrim)
+summary(m1.1)
 summary(m2.1)
 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # 2012 Turnout ====  
 
@@ -213,10 +150,9 @@ prior_vars <- c(# Total Pop, Under 18, Non-Citizen 18+
 
 
 # pull from census API
-pop12 <- get_acs(geography = "county", variables = prior_vars, 
-                 geometry = FALSE, year = 2012,
-                 survey = "acs5", output = "wide")
-pop12_bu <- pop12
+# pop12 <- get_acs(geography = "county", variables = prior_vars, 
+#                  geometry = FALSE, year = 2012,
+#                  survey = "acs5", output = "wide")
 
 
 # write raw data pull
@@ -225,51 +161,6 @@ pop12_bu <- pop12
 
 # ALTERNATIVELY: load from saved pull
 pop12 <- read_csv("pop12_pull.csv")
-
-pop12 <- pop12 %>% 
-  rename(county_full = NAME,
-         poptotal12 = B01001_001E,
-         popu1812 = B09001_001E,
-         noncit12 = B16008_046E) %>% 
-  mutate(fips = as.numeric(GEOID),
-         vap12 = poptotal12 - popu1812 - noncit12) %>% 
-  select(GEOID, fips, county_full, poptotal12, popu1812, noncit12, vap12) %>% 
-  separate(county_full, sep = ", ", into = c("county_only", "state_only"),
-           remove = FALSE, extra = "warn", fill = "warn") %>% 
-  filter(state_only != "Alaska" & 
-          state_only != "Hawaii" & 
-          state_only != "Puerto Rico")
-
-
-# load vote totals from MIT
-load("sources/countypres_2000-2016.RData")
-
-# select 2012 (also only need 1 party)
-votes12 <- x %>% 
-  filter(year == 2012 & party == "democrat") %>% 
-  mutate(fips = as.numeric(FIPS)) %>% 
-  select(fips, totalvotes) %>% 
-  rename(totalvotes12 = totalvotes)
-
-# join & create turnout
-pop12 <- pop12 %>% 
-  left_join(votes12, by = "fips")  %>% 
-  mutate(turnout12 = totalvotes12 / vap12)
-
-# write out the merged merged population and votes/turnout for 2012
-# write.csv(pop12, file = "turnout2012.csv")
-
-
-# 2012 Turnout ====  
-
-prior_vars <- c(# Total Pop, Under 18, Non-Citizen 18+
-                "B01001_001", "B09001_001", "B16008_046")
-
-
-# pull from census API
-pop12 <- get_acs(geography = "county", variables = prior_vars, 
-                 geometry = FALSE, year = 2012,
-                 survey = "acs5", output = "wide")
 pop12_bu <- pop12
 
 pop12 <- pop12 %>% 
@@ -304,8 +195,7 @@ pop12 <- pop12 %>%
 # check out
 describe(pop12$turnout12)
 # some are > 1, like 2016
-to_fuckups <- which(pop12$turnout12 > 1)
-View(pop12[to_fuckups,])
+View(pop12[which(pop12$turnout12 > 1), ])
 # probably also due to ACS mis-estimates in fairly low-pop counties
 # topcode at 99%, like 2012
 pop12$turnout12[pop12$turnout12 > 1] <- .99
@@ -321,6 +211,10 @@ fuckak <- left_join(fuckak, to12, by = "fips")
 hditrim <- left_join(hditrim, to12, by = "fips")
 
 
+# clean up
+rm(list = c("pop12", "pop12_bu", "to12", "votes12", "x"))
+
+
 
 
 
@@ -329,13 +223,12 @@ hditrim <- left_join(hditrim, to12, by = "fips")
 
 # Prior turnout models ====
 m1.2 <- lm(turnout ~ hdi + turnout12, data = fuckak)
-summary(m1.2)
 m2.2 <- lm(turnout ~ hdi + turnout12, data = hditrim)
-summary(m2.2)
-<<<<<<< HEAD
 m1.3 <- lm(turnout ~ hdi + medage + turnout12, data = fuckak)
-summary(m1.3)
 m2.3 <- lm(turnout ~ hdi + medage + turnout12, data = hditrim)
+summary(m1.2)
+summary(m2.2)
+summary(m1.3)
 summary(m2.3)
 
 
@@ -348,13 +241,12 @@ race_vars <- c("B01001_001", "B03002_001", "B03002_002", "B03002_003",
                "B03002_012")
 
 # acs pull - alternatively load race_pull.csv, created in testrace.R, as below
-race <- get_acs(geography = "county", variables = race_vars, 
-               geometry = FALSE, year = 2016,
-               survey = "acs5", output = "wide")
+# race <- get_acs(geography = "county", variables = race_vars, 
+#                geometry = FALSE, year = 2016,
+#                survey = "acs5", output = "wide")
 
-# from previously pulled data - use ONLY this ot the acs pull above
+# from previously pulled data - use ONLY this or the acs pull above
 race <- read_csv("race_pull.csv")
-
 race_bu <- race
 
 race <- race %>%
@@ -395,6 +287,7 @@ race <- race %>%
 # do we want to exclude/combine anything?
 
   # some counties have substantial Native American Pops - KEEP!
+  length(which(race$amind_prop > .1 & race$state != "Alaska"))
   View(race[which(race$amind_prop > .1 & race$state != "Alaska"),])
   
   # only a few counties outside HI & AK have higher than 2%
@@ -436,20 +329,26 @@ race <- race %>%
   
 # VERDICT:
 # combine "multi", "other" and "hawaiin/pacific islander into "other"
+# also create "non-white" category
 race2 <- race %>% 
   filter(state != "Alaska" &
          state != "Hawaii" &
          state != "Puerto Rico") %>% 
   mutate(other = other + multi + hawpi,
          other_prop = other / total,
+         nonwh_prop = black_prop + hilat_prop + asian_prop +
+                      amind_prop + other_prop,
          total = white_prop + black_prop + hilat_prop +
                  asian_prop + amind_prop + other_prop) %>% 
   select(fips, white_prop, black_prop,  hilat_prop,
-         asian_prop, amind_prop, other_prop)
+         asian_prop, amind_prop, other_prop, nonwh_prop)
 
 # verify that proportions for each county sum to 1:
 which((race2$white_prop + race2$black_prop + race2$hilat_prop +
        race2$asian_prop + race2$amind_prop + race2$other_prop) < .999999)
+
+# also check white + nonwhite == 1
+which((race2$white_prop + race2$nonwh_prop < .99999))
 
 
 # joins
@@ -461,69 +360,68 @@ hditrim <- left_join(hditrim, race2, by = "fips")
 
 
 # race models ====
-m1.4 <- lm(turnout ~ hdi + medage + black_prop + hilat_prop + asian_prop +
-           amind_prop + other_prop, data = fuckak)
-summary(m1.4)
-m2.4 <- lm(turnout ~ hdi + medage + black_prop + hilat_prop + asian_prop +
-             amind_prop + other_prop, data = hditrim)
-summary(m2.4)
+
+# moderate negative correlation:
+cor(fuckak$nonwh_prop, fuckak$hdi)
+
+# Models WITHOUT prior turnout, but including nonwhite proportion of population
+# rationale: negative correlation of nonwhite pop & hdi above
+m1.4 <- lm(turnout ~ hdi + medage + nonwh_prop, data = fuckak)
+m2.4 <- lm(turnout ~ hdi + medage + nonwh_prop, data = hditrim)
+
 # NOTE: these models are almost definitely a mistake!!!!
 # should cluster std. errors at state level to account for state election law
 # rather than using lagged county turnout....
-m1.5 <- lm(turnout ~ hdi + medage + black_prop + hilat_prop + asian_prop +
-             amind_prop + other_prop + turnout12, data = fuckak)
+m1.5 <- lm(turnout ~ hdi + medage + nonwh_prop + turnout12, data = fuckak)
+m2.5 <- lm(turnout ~ hdi + medage + nonwh_prop + turnout12, data = hditrim)
+
+summary(m1.4)
+summary(m2.4)
 summary(m1.5)
-m2.5 <- lm(turnout ~ hdi + medage + black_prop + hilat_prop + asian_prop +
-             amind_prop + other_prop + turnout12, data = hditrim)
 summary(m2.5)
 
 
 # clustering ====
 
-# cluster at state
-coef_test(m1.1, vcov = "CR2", cluster = fuckak$state )
+# compute stata-style degress of freedom
+G <- length(unique(fuckak$state))
+N <- length(fuckak$state)
+dfa <- (G/(G-1)) * (N - 1) / m1.1$df.residual
 
-# Yields error b/c/ these two problem counties.
-View(fuckak[which(is.na(fuckak$state)),])
-# NOTE: verified thatproportions for each county sum to 1
-
-# temporarily remove
-fuckak <- fuckak %>% 
-  filter(fips != 22059 & fips != 35013)
-hditrim <- hditrim %>% 
-  filter(fips != 22059 & fips != 35013)
+# create clustering variance-covariance matrix
+state_cluster <- dfa * vcovHC(m1.1, type = "HC0", cluster = "group", adjust = T)
 
 
-# retry clustering, using plm:: methods
-
-  # basic (matches Summary output)
-  coeftest(m1.1)
-  
-  # compute stata-style degress of freedom
-  G <- length(unique(fuckak$state))
-  N <- length(fuckak$state)
-  dfa <- (G/(G-1)) * (N - 1) / m1.1$df.residual
-  
-  # create clustering variance-covariance matrix
-  state_cluster <- dfa * vcovHC(m1.1, type = "HC0", cluster = "group", adjust = T)
+# Cluster hdi + medage models  
+  # stata-style clustering
   coeftest(m1.1, vcov. = state_cluster)
-  coeftest(m1.1)
+  # unmodified clustering - VERY close SE's, t-stat's, etc.
+  # in below will just use this method
+  coeftest(m1.1, vcov. = vcovHC(m1.1, type = "HC0", cluster = "group"))
+  # clustering via the popular lfe::felm
+  # largest/most conservative SEs, but still significant
+  m1.1.cl <- felm(turnout ~ hdi + medage | 0 | 0 | state, data = fuckak)
+  summary(m1.1.cl)
+  # regular standard errors
+  sumamry(m1.1)
+  
+  # Clustering increases standard errors, as expeected
+  # but still strongly significant
+  
+  
   coeftest(m2.1, vcov. = state_cluster)
   coeftest(m2.1)
-  # Increases standard errors, as expeected, but still stringly significant
+  
   
   #repeat for prior turnout models
+  m1.2.cl <- felm(turnout ~ hdi + turnout12 | 0 | 0 | state, data = fuckak)
+  m1.2.fe <- felm(turnout ~ hdi + turnout12 | state, data = fuckak)
+  m1.2.both <- felm(turnout ~ hdi + turnout12 | state | 0 | state,
+                    data = fuckak)
   coeftest(m1.2, vcov. = state_cluster)
-  coeftest(m1.2)
-  coeftest(m2.2, vcov. = state_cluster)
-  coeftest(m2.2)
+  summary(m1.2.cl)
+  summary(m1.2.fe)
+  summary(m1.2.both)
+  summary(m1.2)
  
 
-=======
-
-
-# cluster at state
-coef_test(m1.1, vcov = "CR2", cluster = fuckak$state, )
-
-View(fuckak[which(is.na(fuckak$state)),])
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84

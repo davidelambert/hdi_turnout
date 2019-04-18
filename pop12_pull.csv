@@ -163,10 +163,10 @@
 "162","13021","Bibb County, Georgia",155560,NA,39994,NA,2867,431
 "163","13023","Bleckley County, Georgia",13009,NA,2966,NA,84,50
 "164","13025","Brantley County, Georgia",18279,NA,4661,3,59,56
-"165","13027","Brooks County, Georgia",16066,NA,3776,21,506,89
-"166","13029","Bryan County, Georgia",30616,NA,8931,NA,237,110
-"167","13031","Bulloch County, Georgia",70360,NA,14292,34,1798,317
-"168","13033","Burke County, Georgia",23242,NA,6569,39,209,109
+"165","13033","Burke County, Georgia",23242,NA,6569,39,209,109
+"166","13027","Brooks County, Georgia",16066,NA,3776,21,506,89
+"167","13029","Bryan County, Georgia",30616,NA,8931,NA,237,110
+"168","13031","Bulloch County, Georgia",70360,NA,14292,34,1798,317
 "169","13035","Butts County, Georgia",23671,NA,5245,45,433,112
 "170","13037","Calhoun County, Georgia",6581,NA,1302,NA,232,154
 "171","13039","Camden County, Georgia",50435,NA,13411,NA,512,209
@@ -285,10 +285,10 @@
 "284","13269","Taylor County, Georgia",8700,NA,2146,NA,51,28
 "285","13271","Telfair County, Georgia",16312,NA,3094,83,1495,183
 "286","13273","Terrell County, Georgia",9365,NA,2321,26,39,15
-"287","13275","Thomas County, Georgia",44715,NA,11185,75,622,156
-"288","13277","Tift County, Georgia",40430,NA,10324,NA,1616,366
-"289","13279","Toombs County, Georgia",27270,NA,7668,65,888,285
-"290","01093","Marion County, Alabama",30641,NA,6577,71,87,92
+"287","01093","Marion County, Alabama",30641,NA,6577,71,87,92
+"288","13275","Thomas County, Georgia",44715,NA,11185,75,622,156
+"289","13277","Tift County, Georgia",40430,NA,10324,NA,1616,366
+"290","13279","Toombs County, Georgia",27270,NA,7668,65,888,285
 "291","01095","Marshall County, Alabama",93070,NA,23399,NA,5698,405
 "292","01097","Mobile County, Alabama",412297,NA,103248,NA,7663,680
 "293","01099","Monroe County, Alabama",22993,NA,5760,78,192,82
@@ -402,10 +402,10 @@
 "401","05093","Mississippi County, Arkansas",46388,NA,13049,53,661,196
 "402","05095","Monroe County, Arkansas",8145,NA,1850,NA,63,28
 "403","05097","Montgomery County, Arkansas",9453,NA,1974,NA,53,32
-"404","05099","Nevada County, Arkansas",9003,NA,2190,46,35,18
-"405","05101","Newton County, Arkansas",8286,NA,1724,NA,30,38
-"406","05103","Ouachita County, Arkansas",25894,NA,6033,17,113,47
-"407","05105","Perry County, Arkansas",10413,NA,2343,65,54,55
+"404","05105","Perry County, Arkansas",10413,NA,2343,65,54,55
+"405","05099","Nevada County, Arkansas",9003,NA,2190,46,35,18
+"406","05101","Newton County, Arkansas",8286,NA,1724,NA,30,38
+"407","05103","Ouachita County, Arkansas",25894,NA,6033,17,113,47
 "408","05107","Phillips County, Arkansas",21646,NA,6077,37,23,35
 "409","05109","Pike County, Arkansas",11261,NA,2768,6,325,113
 "410","05111","Poinsett County, Arkansas",24506,NA,5946,14,189,108
@@ -521,12 +521,12 @@
 "520","08063","Kit Carson County, Colorado",8210,NA,1807,76,535,117
 "521","08065","Lake County, Colorado",7372,NA,1934,227,801,256
 "522","08067","La Plata County, Colorado",51443,NA,10416,NA,635,199
-"523","08069","Larimer County, Colorado",300870,NA,63865,64,8846,884
-"524","08071","Las Animas County, Colorado",15385,NA,3175,NA,314,129
-"525","08073","Lincoln County, Colorado",5443,NA,980,28,283,97
-"526","21049","Clark County, Kentucky",35555,NA,8311,39,245,114
-"527","21051","Clay County, Kentucky",21833,NA,4839,133,131,76
-"528","21053","Clinton County, Kentucky",10244,NA,2443,27,103,58
+"523","21053","Clinton County, Kentucky",10244,NA,2443,27,103,58
+"524","08069","Larimer County, Colorado",300870,NA,63865,64,8846,884
+"525","08071","Las Animas County, Colorado",15385,NA,3175,NA,314,129
+"526","08073","Lincoln County, Colorado",5443,NA,980,28,283,97
+"527","21049","Clark County, Kentucky",35555,NA,8311,39,245,114
+"528","21051","Clay County, Kentucky",21833,NA,4839,133,131,76
 "529","21055","Crittenden County, Kentucky",9321,NA,2126,38,40,38
 "530","21057","Cumberland County, Kentucky",6857,NA,1533,NA,37,48
 "531","21059","Daviess County, Kentucky",96711,NA,23604,32,768,180
@@ -643,10 +643,10 @@
 "642","22041","Franklin Parish, Louisiana",20714,NA,5291,NA,32,44
 "643","22043","Grant Parish, Louisiana",22049,NA,5061,28,452,111
 "644","22045","Iberia Parish, Louisiana",73527,NA,20038,49,1477,242
-"645","22047","Iberville Parish, Louisiana",33386,NA,7510,NA,266,147
-"646","22049","Jackson Parish, Louisiana",16210,NA,3733,56,101,71
-"647","22051","Jefferson Parish, Louisiana",432706,NA,97160,32,23431,1373
-"648","22053","Jefferson Davis Parish, Louisiana",31529,NA,8430,65,119,73
+"645","22053","Jefferson Davis Parish, Louisiana",31529,NA,8430,65,119,73
+"646","22047","Iberville Parish, Louisiana",33386,NA,7510,NA,266,147
+"647","22049","Jackson Parish, Louisiana",16210,NA,3733,56,101,71
+"648","22051","Jefferson Parish, Louisiana",432706,NA,97160,32,23431,1373
 "649","22055","Lafayette Parish, Louisiana",221602,NA,54176,NA,5822,649
 "650","22057","Lafourche Parish, Louisiana",96453,NA,23579,NA,1715,316
 "651","22059","LaSalle Parish, Louisiana",14840,NA,3467,42,189,102
@@ -760,10 +760,10 @@
 "759","26039","Crawford County, Michigan",14119,NA,2725,54,99,55
 "760","26041","Delta County, Michigan",37075,NA,7709,36,204,72
 "761","26043","Dickinson County, Michigan",26286,NA,5631,92,129,58
-"762","26045","Eaton County, Michigan",107861,NA,24957,NA,1757,389
-"763","26047","Emmet County, Michigan",32799,NA,7335,NA,245,68
-"764","26049","Genesee County, Michigan",425337,NA,106204,28,3788,493
-"765","26051","Gladwin County, Michigan",25736,NA,5149,15,171,56
+"762","26051","Gladwin County, Michigan",25736,NA,5149,15,171,56
+"763","26045","Eaton County, Michigan",107861,NA,24957,NA,1757,389
+"764","26047","Emmet County, Michigan",32799,NA,7335,NA,245,68
+"765","26049","Genesee County, Michigan",425337,NA,106204,28,3788,493
 "766","26053","Gogebic County, Michigan",16297,NA,2697,25,88,55
 "767","26055","Grand Traverse County, Michigan",87483,NA,19301,NA,691,302
 "768","26057","Gratiot County, Michigan",42340,NA,9091,44,359,96
@@ -879,10 +879,10 @@
 "878","27111","Otter Tail County, Minnesota",57381,NA,12410,NA,747,147
 "879","27113","Pennington County, Minnesota",13950,NA,3306,65,142,58
 "880","27115","Pine County, Minnesota",29564,NA,6462,40,205,79
-"881","27117","Pipestone County, Minnesota",9536,NA,2358,25,127,38
-"882","27119","Polk County, Minnesota",31426,NA,7349,45,458,103
-"883","13281","Towns County, Georgia",10491,NA,1589,82,157,105
-"884","13283","Treutlen County, Georgia",6851,NA,1942,247,31,40
+"881","13283","Treutlen County, Georgia",6851,NA,1942,247,31,40
+"882","27117","Pipestone County, Minnesota",9536,NA,2358,25,127,38
+"883","27119","Polk County, Minnesota",31426,NA,7349,45,458,103
+"884","13281","Towns County, Georgia",10491,NA,1589,82,157,105
 "885","13285","Troup County, Georgia",67146,NA,17759,44,1662,223
 "886","13287","Turner County, Georgia",8834,NA,2208,52,193,72
 "887","13289","Twiggs County, Georgia",8984,NA,1877,NA,49,60
@@ -1002,10 +1002,10 @@
 "1001","17097","Lake County, Illinois",701282,NA,190857,81,63202,1730
 "1002","17099","LaSalle County, Illinois",113688,NA,26170,NA,2088,386
 "1003","17101","Lawrence County, Illinois",16778,NA,1156,262,369,158
-"1004","17103","Lee County, Illinois",35778,NA,7686,25,477,203
-"1005","17105","Livingston County, Illinois",38903,NA,8731,28,288,93
-"1006","17107","Logan County, Illinois",30278,NA,5842,45,348,114
-"1007","17109","McDonough County, Illinois",32568,NA,5197,10,620,190
+"1004","17109","McDonough County, Illinois",32568,NA,5197,10,620,190
+"1005","17103","Lee County, Illinois",35778,NA,7686,25,477,203
+"1006","17105","Livingston County, Illinois",38903,NA,8731,28,288,93
+"1007","17107","Logan County, Illinois",30278,NA,5842,45,348,114
 "1008","17111","McHenry County, Illinois",308163,NA,83478,NA,13857,793
 "1009","17113","McLean County, Illinois",169689,NA,38203,NA,5960,476
 "1010","17115","Macon County, Illinois",110558,NA,25105,51,1163,209
@@ -1124,10 +1124,10 @@
 "1123","18137","Ripley County, Indiana",28702,NA,7621,59,94,50
 "1124","18139","Rush County, Indiana",17349,NA,4294,42,28,24
 "1125","18141","St. Joseph County, Indiana",266785,NA,65516,25,8030,526
-"1126","18143","Scott County, Indiana",24044,NA,5711,110,239,112
-"1127","18145","Shelby County, Indiana",44435,NA,10903,76,755,137
-"1128","18147","Spencer County, Indiana",20948,NA,4925,22,226,69
-"1129","18149","Starke County, Indiana",23310,NA,5604,44,97,79
+"1126","18149","Starke County, Indiana",23310,NA,5604,44,97,79
+"1127","18143","Scott County, Indiana",24044,NA,5711,110,239,112
+"1128","18145","Shelby County, Indiana",44435,NA,10903,76,755,137
+"1129","18147","Spencer County, Indiana",20948,NA,4925,22,226,69
 "1130","18151","Steuben County, Indiana",34116,NA,7761,NA,405,124
 "1131","18153","Sullivan County, Indiana",21379,NA,4501,134,115,47
 "1132","18155","Switzerland County, Indiana",10509,NA,2646,29,97,47
@@ -1248,10 +1248,10 @@
 "1247","20003","Anderson County, Kansas",8066,NA,2062,NA,18,18
 "1248","20005","Atchison County, Kansas",16854,NA,4097,60,37,23
 "1249","20007","Barber County, Kansas",4867,NA,1065,74,3,7
-"1250","20009","Barton County, Kansas",27556,NA,6754,NA,1279,236
-"1251","20011","Bourbon County, Kansas",15060,NA,3820,169,27,22
-"1252","20013","Brown County, Kansas",9962,NA,2505,10,82,39
-"1253","20015","Butler County, Kansas",65647,NA,17546,NA,525,159
+"1250","20015","Butler County, Kansas",65647,NA,17546,NA,525,159
+"1251","20009","Barton County, Kansas",27556,NA,6754,NA,1279,236
+"1252","20011","Bourbon County, Kansas",15060,NA,3820,169,27,22
+"1253","20013","Brown County, Kansas",9962,NA,2505,10,82,39
 "1254","20017","Chase County, Kansas",2788,NA,654,42,38,27
 "1255","20019","Chautauqua County, Kansas",3654,NA,737,14,30,35
 "1256","20021","Cherokee County, Kansas",21521,NA,5360,54,68,64
@@ -1371,10 +1371,10 @@
 "1370","21039","Carlisle County, Kentucky",5081,NA,1141,5,28,38
 "1371","21041","Carroll County, Kentucky",10851,NA,2734,NA,390,142
 "1372","21043","Carter County, Kentucky",27594,NA,6377,103,36,31
-"1373","21045","Casey County, Kentucky",15984,NA,3864,78,100,51
-"1374","21047","Christian County, Kentucky",73722,NA,20849,71,1313,224
-"1375","30031","Gallatin County, Montana",90339,NA,18788,35,1435,290
-"1376","30033","Garfield County, Montana",1100,110,242,64,0,10
+"1373","30033","Garfield County, Montana",1100,110,242,64,0,10
+"1374","21045","Casey County, Kentucky",15984,NA,3864,78,100,51
+"1375","21047","Christian County, Kentucky",73722,NA,20849,71,1313,224
+"1376","30031","Gallatin County, Montana",90339,NA,18788,35,1435,290
 "1377","30035","Glacier County, Montana",13422,NA,4254,57,130,83
 "1378","30037","Golden Valley County, Montana",769,101,197,59,0,10
 "1379","30039","Granite County, Montana",3083,NA,521,NA,27,26
@@ -1492,10 +1492,10 @@
 "1491","31151","Saline County, Nebraska",14278,NA,3485,35,1068,243
 "1492","31153","Sarpy County, Nebraska",159413,NA,45717,22,3929,442
 "1493","31155","Saunders County, Nebraska",20696,NA,5307,NA,153,58
-"1494","31157","Scotts Bluff County, Nebraska",36835,NA,9104,30,744,208
-"1495","31159","Seward County, Nebraska",16729,NA,3925,18,62,33
-"1496","31161","Sheridan County, Nebraska",5432,NA,1255,11,16,18
-"1497","31163","Sherman County, Nebraska",3133,NA,693,22,15,15
+"1494","31163","Sherman County, Nebraska",3133,NA,693,22,15,15
+"1495","31157","Scotts Bluff County, Nebraska",36835,NA,9104,30,744,208
+"1496","31159","Seward County, Nebraska",16729,NA,3925,18,62,33
+"1497","31161","Sheridan County, Nebraska",5432,NA,1255,11,16,18
 "1498","31165","Sioux County, Nebraska",1262,73,261,48,0,10
 "1499","31167","Stanton County, Nebraska",6139,NA,1656,NA,38,40
 "1500","31169","Thayer County, Nebraska",5195,NA,1116,27,19,18
@@ -1611,10 +1611,10 @@
 "1610","36041","Hamilton County, New York",4835,NA,807,18,43,27
 "1611","36043","Herkimer County, New York",64475,NA,14183,31,834,230
 "1612","36045","Jefferson County, New York",117011,NA,29385,60,2404,306
-"1613","36047","Kings County, New York",2512740,NA,596667,198,386911,5376
-"1614","36049","Lewis County, New York",27062,NA,6611,31,221,73
-"1615","36051","Livingston County, New York",65215,NA,13036,70,822,199
-"1616","39095","Lucas County, Ohio",441198,NA,105435,NA,6064,644
+"1613","39095","Lucas County, Ohio",441198,NA,105435,NA,6064,644
+"1614","36047","Kings County, New York",2512740,NA,596667,198,386911,5376
+"1615","36049","Lewis County, New York",27062,NA,6611,31,221,73
+"1616","36051","Livingston County, New York",65215,NA,13036,70,822,199
 "1617","39097","Madison County, Ohio",43213,NA,9610,62,468,146
 "1618","39099","Mahoning County, Ohio",238352,NA,51213,NA,3470,422
 "1619","39101","Marion County, Ohio",66514,NA,14612,NA,535,140
@@ -1733,10 +1733,10 @@
 "1732","40151","Woods County, Oklahoma",8741,NA,1728,76,42,34
 "1733","40153","Woodward County, Oklahoma",20232,NA,4907,NA,679,176
 "1734","41001","Baker County, Oregon",16092,NA,3242,36,139,85
-"1735","41003","Benton County, Oregon",85501,NA,14995,20,4168,459
-"1736","41005","Clackamas County, Oregon",377206,NA,88732,NA,14056,982
-"1737","41007","Clatsop County, Oregon",37068,NA,7583,39,1124,164
-"1738","41009","Columbia County, Oregon",49317,NA,11704,68,776,222
+"1735","41009","Columbia County, Oregon",49317,NA,11704,68,776,222
+"1736","41003","Benton County, Oregon",85501,NA,14995,20,4168,459
+"1737","41005","Clackamas County, Oregon",377206,NA,88732,NA,14056,982
+"1738","41007","Clatsop County, Oregon",37068,NA,7583,39,1124,164
 "1739","41011","Coos County, Oregon",62937,NA,11932,NA,629,176
 "1740","41013","Crook County, Oregon",21102,NA,4583,NA,288,118
 "1741","41015","Curry County, Oregon",22344,NA,3592,56,244,120
@@ -1851,10 +1851,10 @@
 "1850","45017","Calhoun County, South Carolina",15134,NA,3294,NA,180,71
 "1851","45019","Charleston County, South Carolina",352548,NA,73343,69,11292,767
 "1852","45021","Cherokee County, South Carolina",55351,NA,13546,31,844,121
-"1853","45023","Chester County, South Carolina",33028,NA,7950,53,122,72
-"1854","45025","Chesterfield County, South Carolina",46462,NA,11481,121,779,220
-"1855","45027","Clarendon County, South Carolina",34746,NA,7684,97,338,109
-"1856","36053","Madison County, New York",72977,NA,15814,NA,533,128
+"1853","36053","Madison County, New York",72977,NA,15814,NA,533,128
+"1854","45023","Chester County, South Carolina",33028,NA,7950,53,122,72
+"1855","45025","Chesterfield County, South Carolina",46462,NA,11481,121,779,220
+"1856","45027","Clarendon County, South Carolina",34746,NA,7684,97,338,109
 "1857","36055","Monroe County, New York",744746,NA,168020,68,22994,1322
 "1858","36057","Montgomery County, New York",50025,NA,11633,67,819,227
 "1859","36059","Nassau County, New York",1338712,NA,309309,NA,101570,2764
@@ -1967,10 +1967,10 @@
 "1966","37149","Polk County, North Carolina",20386,NA,3821,23,535,148
 "1967","37151","Randolph County, North Carolina",141568,NA,34545,NA,6886,471
 "1968","37153","Richmond County, North Carolina",46608,NA,11440,134,1456,154
-"1969","37155","Robeson County, North Carolina",133920,NA,36015,19,5791,376
-"1970","37157","Rockingham County, North Carolina",93264,NA,20594,NA,2533,258
-"1971","37159","Rowan County, North Carolina",138189,NA,32662,NA,4819,450
-"1972","37161","Rutherford County, North Carolina",67446,NA,15105,79,888,216
+"1969","37161","Rutherford County, North Carolina",67446,NA,15105,79,888,216
+"1970","37155","Robeson County, North Carolina",133920,NA,36015,19,5791,376
+"1971","37157","Rockingham County, North Carolina",93264,NA,20594,NA,2533,258
+"1972","37159","Rowan County, North Carolina",138189,NA,32662,NA,4819,450
 "1973","37163","Sampson County, North Carolina",63408,NA,16189,NA,4017,352
 "1974","37165","Scotland County, North Carolina",36266,NA,9083,15,411,144
 "1975","37167","Stanly County, North Carolina",60489,NA,13667,15,1237,201
@@ -2086,10 +2086,10 @@
 "2085","39081","Jefferson County, Ohio",69343,NA,13903,35,232,91
 "2086","39083","Knox County, Ohio",60791,NA,14589,36,317,102
 "2087","39085","Lake County, Ohio",229873,NA,50677,NA,4390,487
-"2088","39087","Lawrence County, Ohio",62441,NA,14635,42,36,25
-"2089","39089","Licking County, Ohio",166135,NA,40849,NA,1184,274
-"2090","39091","Logan County, Ohio",45816,NA,11558,45,208,75
-"2091","39093","Lorain County, Ohio",301108,NA,71732,22,3286,439
+"2088","39093","Lorain County, Ohio",301108,NA,71732,22,3286,439
+"2089","39087","Lawrence County, Ohio",62441,NA,14635,42,36,25
+"2090","39089","Licking County, Ohio",166135,NA,40849,NA,1184,274
+"2091","39091","Logan County, Ohio",45816,NA,11558,45,208,75
 "2092","27121","Pope County, Minnesota",10978,NA,2315,25,13,10
 "2093","27123","Ramsey County, Minnesota",510885,NA,119002,72,32304,1176
 "2094","27125","Red Lake County, Minnesota",4100,NA,1002,12,16,17
@@ -2204,10 +2204,10 @@
 "2203","29005","Atchison County, Missouri",5664,NA,1195,34,8,7
 "2204","29007","Audrain County, Missouri",25617,NA,6381,NA,208,90
 "2205","29009","Barry County, Missouri",35680,NA,8745,14,921,172
-"2206","29011","Barton County, Missouri",12428,NA,3232,NA,111,78
-"2207","29013","Bates County, Missouri",17003,NA,4217,NA,142,69
-"2208","29015","Benton County, Missouri",19021,NA,3343,93,189,95
-"2209","29017","Bollinger County, Missouri",12389,NA,2928,31,16,9
+"2206","29017","Bollinger County, Missouri",12389,NA,2928,31,16,9
+"2207","29011","Barton County, Missouri",12428,NA,3232,NA,111,78
+"2208","29013","Bates County, Missouri",17003,NA,4217,NA,142,69
+"2209","29015","Benton County, Missouri",19021,NA,3343,93,189,95
 "2210","29019","Boone County, Missouri",163266,NA,34126,NA,5803,532
 "2211","29021","Buchanan County, Missouri",89162,NA,20960,5,1610,346
 "2212","29023","Butler County, Missouri",42792,NA,10008,90,239,101
@@ -2325,10 +2325,10 @@
 "2324","30017","Custer County, Montana",11706,NA,2605,47,56,39
 "2325","30019","Daniels County, Montana",1734,154,274,76,11,10
 "2326","30021","Dawson County, Montana",9022,NA,1760,45,7,10
-"2327","30023","Deer Lodge County, Montana",9277,NA,1787,27,36,38
-"2328","30025","Fallon County, Montana",3051,144,784,77,3,4
-"2329","30027","Fergus County, Montana",11507,NA,2244,66,77,73
-"2330","30029","Flathead County, Montana",90967,NA,21255,69,1088,301
+"2327","30029","Flathead County, Montana",90967,NA,21255,69,1088,301
+"2328","30023","Deer Lodge County, Montana",9277,NA,1787,27,36,38
+"2329","30025","Fallon County, Montana",3051,144,784,77,3,4
+"2330","30027","Fergus County, Montana",11507,NA,2244,66,77,73
 "2331","50025","Windham County, Vermont",44310,NA,8726,47,665,153
 "2332","50027","Windsor County, Vermont",56607,NA,11237,42,733,178
 "2333","51001","Accomack County, Virginia",33454,NA,7105,81,1487,339
@@ -2443,10 +2443,10 @@
 "2442","51640","Galax city, Virginia",6942,NA,1392,204,382,177
 "2443","51650","Hampton city, Virginia",137471,NA,31231,NA,2353,464
 "2444","51660","Harrisonburg city, Virginia",49043,NA,7507,NA,4678,539
-"2445","51670","Hopewell city, Virginia",22501,NA,5796,91,541,170
-"2446","51678","Lexington city, Virginia",6990,NA,709,315,247,154
-"2447","51680","Lynchburg city, Virginia",75657,NA,14835,44,2388,318
-"2448","51683","Manassas city, Virginia",37943,NA,10721,38,6583,485
+"2445","51683","Manassas city, Virginia",37943,NA,10721,38,6583,485
+"2446","51670","Hopewell city, Virginia",22501,NA,5796,91,541,170
+"2447","51678","Lexington city, Virginia",6990,NA,709,315,247,154
+"2448","51680","Lynchburg city, Virginia",75657,NA,14835,44,2388,318
 "2449","51685","Manassas Park city, Virginia",14409,NA,4110,NA,2749,445
 "2450","51690","Martinsville city, Virginia",13854,NA,2880,84,344,156
 "2451","51700","Newport News city, Virginia",180831,NA,43946,78,6000,705
@@ -2561,10 +2561,10 @@
 "2560","54109","Wyoming County, West Virginia",23668,NA,5040,66,9,11
 "2561","55001","Adams County, Wisconsin",20898,NA,3428,12,349,89
 "2562","55003","Ashland County, Wisconsin",16113,NA,3711,NA,81,45
-"2563","55005","Barron County, Wisconsin",45882,NA,10167,NA,398,124
-"2564","55007","Bayfield County, Wisconsin",15078,NA,2829,17,66,33
-"2565","55009","Brown County, Wisconsin",248526,NA,61867,41,7163,634
-"2566","55011","Buffalo County, Wisconsin",13544,NA,2995,10,62,21
+"2563","55011","Buffalo County, Wisconsin",13544,NA,2995,10,62,21
+"2564","55005","Barron County, Wisconsin",45882,NA,10167,NA,398,124
+"2565","55007","Bayfield County, Wisconsin",15078,NA,2829,17,66,33
+"2566","55009","Brown County, Wisconsin",248526,NA,61867,41,7163,634
 "2567","55013","Burnett County, Wisconsin",15528,NA,3016,37,56,22
 "2568","55015","Calumet County, Wisconsin",48960,NA,13061,84,605,144
 "2569","55017","Chippewa County, Wisconsin",62362,NA,14590,NA,324,107
@@ -2679,10 +2679,10 @@
 "2678","72045","Comer?o Municipio, Puerto Rico",20745,NA,5235,NA,7,10
 "2679","72047","Corozal Municipio, Puerto Rico",37074,NA,9611,NA,76,77
 "2680","72049","Culebra Municipio, Puerto Rico",1535,272,338,128,14,16
-"2681","72051","Dorado Municipio, Puerto Rico",38179,NA,10023,NA,394,165
-"2682","72053","Fajardo Municipio, Puerto Rico",36857,NA,9189,NA,294,128
-"2683","72054","Florida Municipio, Puerto Rico",12657,NA,3291,NA,129,107
-"2684","72055","Gu?nica Municipio, Puerto Rico",19363,NA,4754,NA,8,12
+"2681","72055","Gu?nica Municipio, Puerto Rico",19363,NA,4754,NA,8,12
+"2682","72051","Dorado Municipio, Puerto Rico",38179,NA,10023,NA,394,165
+"2683","72053","Fajardo Municipio, Puerto Rico",36857,NA,9189,NA,294,128
+"2684","72054","Florida Municipio, Puerto Rico",12657,NA,3291,NA,129,107
 "2685","45029","Colleton County, South Carolina",38665,NA,9369,90,710,156
 "2686","45031","Darlington County, South Carolina",68500,NA,16502,62,744,199
 "2687","45033","Dillon County, South Carolina",31733,NA,8414,NA,481,153
@@ -2795,10 +2795,10 @@
 "2794","47023","Chester County, Tennessee",17043,NA,3944,24,127,87
 "2795","47025","Claiborne County, Tennessee",32025,NA,6619,55,132,88
 "2796","47027","Clay County, Tennessee",7842,NA,1644,95,15,18
-"2797","47029","Cocke County, Tennessee",35631,NA,7595,82,343,172
-"2798","47031","Coffee County, Tennessee",52853,NA,12865,91,1077,184
-"2799","47033","Crockett County, Tennessee",14567,NA,3547,NA,487,117
-"2800","47035","Cumberland County, Tennessee",56144,NA,10609,80,784,177
+"2797","47035","Cumberland County, Tennessee",56144,NA,10609,80,784,177
+"2798","47029","Cocke County, Tennessee",35631,NA,7595,82,343,172
+"2799","47031","Coffee County, Tennessee",52853,NA,12865,91,1077,184
+"2800","47033","Crockett County, Tennessee",14567,NA,3547,NA,487,117
 "2801","47037","Davidson County, Tennessee",629113,NA,137237,121,44162,1396
 "2802","47039","Decatur County, Tennessee",11732,NA,2508,NA,111,79
 "2803","47041","DeKalb County, Tennessee",18770,NA,4291,19,699,151
@@ -2916,10 +2916,10 @@
 "2915","48075","Childress County, Texas",7047,NA,1383,168,172,68
 "2916","48077","Clay County, Texas",10718,NA,2427,35,48,40
 "2917","48079","Cochran County, Texas",3087,NA,917,16,252,76
-"2918","48081","Coke County, Texas",3298,NA,678,NA,41,31
-"2919","48083","Coleman County, Texas",8817,NA,1967,46,47,48
-"2920","48085","Collin County, Texas",788580,NA,224252,NA,68100,2076
-"2921","48087","Collingsworth County, Texas",3050,NA,856,87,224,89
+"2918","48087","Collingsworth County, Texas",3050,NA,856,87,224,89
+"2919","48081","Coke County, Texas",3298,NA,678,NA,41,31
+"2920","48083","Coleman County, Texas",8817,NA,1967,46,47,48
+"2921","48085","Collin County, Texas",788580,NA,224252,NA,68100,2076
 "2922","48089","Colorado County, Texas",20784,NA,4872,16,1219,310
 "2923","48091","Comal County, Texas",108985,NA,25679,NA,3471,719
 "2924","48093","Comanche County, Texas",13875,NA,3323,56,604,203
@@ -3040,10 +3040,10 @@
 "3039","48323","Maverick County, Texas",54107,NA,18096,NA,11134,663
 "3040","48325","Medina County, Texas",46009,NA,11778,133,1493,390
 "3041","48327","Menard County, Texas",2232,NA,537,107,57,48
-"3042","48329","Midland County, Texas",138472,NA,38008,91,6817,675
-"3043","48331","Milam County, Texas",24691,NA,6486,21,867,227
-"3044","48333","Mills County, Texas",4880,NA,1189,120,256,99
-"3045","48335","Mitchell County, Texas",9367,NA,1801,122,359,124
+"3042","48335","Mitchell County, Texas",9367,NA,1801,122,359,124
+"3043","48329","Midland County, Texas",138472,NA,38008,91,6817,675
+"3044","48331","Milam County, Texas",24691,NA,6486,21,867,227
+"3045","48333","Mills County, Texas",4880,NA,1189,120,256,99
 "3046","48337","Montague County, Texas",19737,NA,4605,65,400,129
 "3047","48339","Montgomery County, Texas",458339,NA,126366,55,35900,1532
 "3048","48341","Moore County, Texas",21765,NA,6995,10,3628,389
@@ -3164,17 +3164,17 @@
 "3163","50005","Caledonia County, Vermont",31170,NA,6720,42,288,86
 "3164","50007","Chittenden County, Vermont",156696,NA,30979,NA,4074,533
 "3165","50009","Essex County, Vermont",6316,NA,1219,31,85,32
-"3166","50011","Franklin County, Vermont",47853,NA,11761,15,496,121
-"3167","50013","Grand Isle County, Vermont",7032,NA,1417,35,72,27
-"3168","50015","Lamoille County, Vermont",24471,NA,5386,71,391,125
-"3169","50017","Orange County, Vermont",28980,NA,6054,NA,138,59
+"3166","50017","Orange County, Vermont",28980,NA,6054,NA,138,59
+"3167","50011","Franklin County, Vermont",47853,NA,11761,15,496,121
+"3168","50013","Grand Isle County, Vermont",7032,NA,1417,35,72,27
+"3169","50015","Lamoille County, Vermont",24471,NA,5386,71,391,125
 "3170","50019","Orleans County, Vermont",27198,NA,5741,43,378,110
 "3171","50021","Rutland County, Vermont",61599,NA,11864,NA,422,102
 "3172","50023","Washington County, Vermont",59462,NA,12190,61,531,120
-"3173","72057","Guayama Municipio, Puerto Rico",45250,NA,11572,NA,182,107
-"3174","72059","Guayanilla Municipio, Puerto Rico",21493,NA,5450,NA,9,13
-"3175","72061","Guaynabo Municipio, Puerto Rico",97639,NA,20885,NA,2607,411
-"3176","72063","Gurabo Municipio, Puerto Rico",45540,NA,11762,NA,222,95
+"3173","72063","Gurabo Municipio, Puerto Rico",45540,NA,11762,NA,222,95
+"3174","72057","Guayama Municipio, Puerto Rico",45250,NA,11572,NA,182,107
+"3175","72059","Guayanilla Municipio, Puerto Rico",21493,NA,5450,NA,9,13
+"3176","72061","Guaynabo Municipio, Puerto Rico",97639,NA,20885,NA,2607,411
 "3177","72065","Hatillo Municipio, Puerto Rico",41945,NA,10090,NA,200,101
 "3178","72067","Hormigueros Municipio, Puerto Rico",17217,NA,3664,NA,117,79
 "3179","72069","Humacao Municipio, Puerto Rico",58333,NA,13747,NA,454,198
