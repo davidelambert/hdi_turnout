@@ -135,7 +135,7 @@ summary(m1.0)
 summary(m2.0)
 
 
-# multiple
+# add median age
 m1.1 <- lm(turnout ~ hdi + medage, data = fuckak)
 m2.1 <- lm(turnout ~ hdi + medage, data = hditrim)
 summary(m1.1)
@@ -145,8 +145,8 @@ summary(m2.1)
 
 # 2012 Turnout ====  
 
-prior_vars <- c(# Total Pop, Under 18, Non-Citizen 18+
-                "B01001_001", "B09001_001", "B16008_046")
+# prior_vars <- c(# Total Pop, Under 18, Non-Citizen 18+
+#                 "B01001_001", "B09001_001", "B16008_046")
 
 
 # pull from census API
@@ -235,10 +235,10 @@ summary(m2.3)
 
 # race/ethnicity ====
 
-race_vars <- c("B01001_001", "B03002_001", "B03002_002", "B03002_003",
-               "B03002_004", "B03002_005", "B03002_006", "B03002_007",
-               "B03002_008", "B03002_009", "B03002_010", "B03002_011",
-               "B03002_012")
+# race_vars <- c("B01001_001", "B03002_001", "B03002_002", "B03002_003",
+#                "B03002_004", "B03002_005", "B03002_006", "B03002_007",
+#                "B03002_008", "B03002_009", "B03002_010", "B03002_011",
+#                "B03002_012")
 
 # acs pull - alternatively load race_pull.csv, created in testrace.R, as below
 # race <- get_acs(geography = "county", variables = race_vars, 
@@ -357,6 +357,9 @@ hditrim <- left_join(hditrim, race2, by = "fips")
 
 
 
+# clean up
+rm(list = c("race", "race_bu", "race2"))
+
 
 
 # race models ====
@@ -409,19 +412,47 @@ state_cluster <- dfa * vcovHC(m1.1, type = "HC0", cluster = "group", adjust = T)
   # but still strongly significant
   
   
-  coeftest(m2.1, vcov. = state_cluster)
-  coeftest(m2.1)
-  
-  
+
   #repeat for prior turnout models
   m1.2.cl <- felm(turnout ~ hdi + turnout12 | 0 | 0 | state, data = fuckak)
   m1.2.fe <- felm(turnout ~ hdi + turnout12 | state, data = fuckak)
   m1.2.both <- felm(turnout ~ hdi + turnout12 | state | 0 | state,
                     data = fuckak)
-  coeftest(m1.2, vcov. = state_cluster)
+  coeftest(m1.1, vcov. = vcovHC(m1.2, type = "HC0", cluster = "group"))
   summary(m1.2.cl)
   summary(m1.2.fe)
   summary(m1.2.both)
   summary(m1.2)
+  
+  
+  # repeat for median age + race models
+  m1.4.cl <- felm(turnout ~ hdi + medage + nonwh_prop | 0 | 0 | state,
+                  data = fuckak)
+  m1.4.fe <- felm(turnout ~ hdi + medage + nonwh_prop | state, data = fuckak)
+  m1.4.both <- felm(turnout ~ hdi + medage + nonwh_prop | state | 0 | state,
+                    data = fuckak)
+  coeftest(m1.1, vcov. = vcovHC(m1.4, type = "HC0", cluster = "group"))
+  summary(m1.4.cl)
+  summary(m1.4.fe)
+  summary(m1.4.both)
+  summary(m1.4)
  
 
+# SPATIAL REGRESSION MODELS ====
+library(spatialreg)
+library(spdep)
+nb <- poly2nb(fuckak)
+lw <- nb2listw(nb, zero.policy = TRUE)
+s1.0 <- lagsarlm(turnout ~ hdi, data = fuckak, lw, zero.policy = TRUE)
+s1.1 <- lagsarlm(turnout ~ hdi + medage + white_prop,
+                 data = fuckak, lw, zero.policy = TRUE)
+summary(s1.0)
+summary(s1.1)
+
+# SAVE THESE RESULTS AS R OBJECTS CUZ THIS SHIT TAKES FOR GODDAMN EVER!!!
+save(s1.0, file = "spatial_simple.Rdata")
+save(s1.1, file = "spatial_multi.Rdata")
+
+moran.mc()
+
+  

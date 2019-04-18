@@ -13,11 +13,7 @@ options(tigris_use_cache = TRUE)
 
 # get all versions
 load("acs_.Rdata")
-<<<<<<< HEAD
 load("fuckak_.Rdata")
-=======
-load("fuckak.Rdata")
->>>>>>> bc9c20cede319784f3176e3fab7d40dfdc843c84
 
 # GRAPHICS ====
   
@@ -47,7 +43,7 @@ ginimap
 # HDI  map
 hdimap <- fuckak %>% 
   ggplot() +
-  geom_sf(aes(fill = hdi, color = "white")) +
+  geom_sf(aes(fill = hdi), lwd = 0) +
   scale_fill_viridis_c(name = "HDI", option = "plasma") + 
   labs(
     title = "Modified HDI by County, 2016", 
