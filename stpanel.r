@@ -1,4 +1,7 @@
 library(psych)
+library(AER)
+library(plm)
+library(lfe)
 library(tidycensus)
 library(tidyverse)
 
@@ -21,7 +24,7 @@ vars12 <- load_variables(2012, "acs1", cache = T)
 
 # SINGLE-YEAR ACS PULL ====
 
-panel_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
+stpan_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
                 "B01001_001", "B09001_001", "B16008_046", "B01002_001",
                 # Gini, median earnings, per capita income
                 "B19083_001", "B20017_001", "B19301_001",
@@ -36,8 +39,6 @@ panel_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
                 "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
                 "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
                 "B01001_031", "B01001_032", "B01001_033", "B01001_034",
-                # Population over 70
-                "B01001_022", "B01001_023", "B01001_024", "B01001_025", 
                 # Race counts
                 "B03002_001", "B03002_002", "B03002_003", "B03002_004",
                 "B03002_005", "B03002_006", "B03002_007", "B03002_008",
@@ -47,15 +48,15 @@ panel_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
 # years to send to mapping function
 years <- lst(2012, 2016)
 
-# ALSO: ACS-1 will ONLY work for areas of pop > 65,0000
-# have to switch to congressional disctrict, rather than county :-(
+# ALSO: many other variables, like mortality, etc, are not available at the
+# Congressional District level, so reverting back to state level.
 
-panel <-
+stpan <-
   map_dfr(
     years,
     ~ get_acs(
-      geography = "congressional district",
-      variables = panel_vars,
+      geography = "state",
+      variables = stpan_vars,
       year = .x,
       survey = "acs1",
       output = "wide"
@@ -63,23 +64,24 @@ panel <-
     .id = "year"
   )
 
-panel_bu <- panel
+stpan_bu <- stpan
 
-# write_csv(panel_bu, "panel_pull.csv")
+write_csv(stpan_bu, "stpan_pull.csv")
+
 
 # CLEAN UP ====
 
 # list to use in select()
 keep <- c("GEOID", "year", "d16", "NAME", "poptotal", "noncit", "popu18",
-          "popu25", "pop3o", "pop324", "pop70_prop",  "vap", "medage", "incmed",
+          "popu25", "pop3o", "pop324", "vapacs", "medage", "incmed",
           "incpc", "gini", "hs", "ged", "some1", "some2", "assoc", "bacc",
           "mast", "prof", "phd", "enroll", "pop_check", "nothilat", "white",
           "black", "amind", "asian", "hawpi", "other", "multi", "hilat",
-          "hpiom", "white_prop", "black_prop", "amind_prop", "asian_prop",
-          "hilat_prop", "other_prop", "nonwh_prop", "race_check")
+          "white_prop", "black_prop", "amind_prop", "asian_prop", "hawpi_prop",
+          "other_prop", "multi_prop", "hilat_prop", "nonwh_prop")
 
 
-panel <- panel %>%
+stpan <- stpan %>%
   rename(
     poptotal = B01001_001E,
     popu18 = B09001_001E,
@@ -111,66 +113,46 @@ panel <- panel %>%
     hilat = B03002_012E
   ) %>% 
   mutate(
-    d16 = ifelse(panel$year == "2016", 1, 0),
+    d16 = ifelse(stpan$year == "2016", 1, 0),
     popu25 = B01001_003E + B01001_004E + B01001_005E + B01001_006E + 
       B01001_007E + B01001_008E + B01001_009E + B01001_010E + 
       B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
       B01001_031E + B01001_032E + B01001_033E + B01001_034E,
     pop324 = popu25 - (poptotal - pop3o),
-    pop70o = B01001_022E + B01001_023E + B01001_024E + B01001_025E,
-    pop70_prop = pop70o / poptotal,
-    vap = poptotal - popu18 - noncit,
-    hpiom = hawpi + other + multi,
+    vapacs = poptotal - popu18 - noncit,
     white_prop = white / pop_check,
     black_prop = black / pop_check,
     amind_prop = amind / pop_check,
     asian_prop = asian / pop_check,
+    hawpi_prop = hawpi / pop_check,
+    other_prop = other / pop_check,
+    multi_prop = multi / pop_check,
     hilat_prop = hilat / pop_check,
-    other_prop = hpiom / pop_check,
-    nonwh_prop = black_prop + amind_prop + asian_prop + hilat_prop + other_prop,
-    race_check = black_prop + amind_prop + asian_prop + hilat_prop +
-      other_prop + white_prop
+    nonwh_prop = 1 - white_prop
   ) %>% 
-  select(keep)
+  select(keep) %>% 
+  filter(NAME != "Puerto Rico")
 
-# remove the 4 obs for Puerto Rico & DC, 2012 & 2016
-panel <- panel[!grepl("Puerto", panel$NAME),]
-panel <- panel[!grepl("Columbia", panel$NAME),]
-
-# convert colums for hdi matching
-panel$year <- as.numeric(panel$year)
-panel$GEOID <- as.numeric(panel$GEOID)
 
 # sort into panels
-panel <- arrange(panel, GEOID, year)
+stpan <- arrange(stpan, GEOID, year)
 
 
 # backup
-panel_bu2 <- panel
+stpan_bu2 <- stpan
 
 
 
 # write out the clean version
-# write_csv(panel, "panel.csv")
+write_csv(stpan, "stpan.csv")
 
 
 
-# IMPORT INSTEAD OF PULL ====
-
-panel <- read_csv("panel.csv")
-panel_bu <- panel
-
-
-
-# TURNOUT ====
-load("sources/1976-2016-house.RData")
-votes <- x %>% 
-  filter(year == 2012 | year == 2016)
+# HEALTH INDEX ====
 
 
 
 
 
-hullhkuhlhkhun
-View(panel[sample(1:870, 10, replace = F), c(1:3, 44:45)])
+View(stpan[sample(1:102, 10, replace = F), c(1:3, 44:45)])
 
