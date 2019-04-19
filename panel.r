@@ -2,6 +2,7 @@ library(sf)
 library(tidycensus)
 library(psych)
 library(tidyverse)
+library(readxl)
 
 # possible differences b/w avaialability in each year, but probably not
 # for anything I'm interested in
@@ -130,12 +131,38 @@ panel <- panel %>%
   ) %>% 
   select(keep)
 
+# remove the 2 obs for Puerto Rico (2012 & 2016)
+panel <- panel[!grepl("Puerto", panel$NAME),]
+
+# convert colums for hdi matching
+panel$year <- as.numeric(panel$year)
+panel$GEOID <- as.numeric(panel$GEOID)
+
 # backup
 panel_bu2 <- panel
+
+
 
 # write out the clean version
 write_csv(panel, "panel.csv")
 
 
 
+# HDI ====
+
+# import
+hdi <- read_csv("sources/Geographies_of_Opportunity_combinedHDI.csv",
+                col_types = "nncn")
+
+#   !!!!!!!!!!!!!!SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Just noticed that the "2012" hdi data are from the 112th
+# Congress, apportioned based on the 2000 Census.
+# Not comparable. CAN'T USE!!! :-( )-:
+
+
+
+# join
+panel <- left_join(panel, hdi)
+
+View(panel[sample(1:872, 10, replace = F), c(1:3, 44:45)])
 
