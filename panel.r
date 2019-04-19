@@ -38,6 +38,8 @@ panel_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
                 "B01001_007", "B01001_008", "B01001_009", "B01001_010", 
                 "B01001_027", "B01001_028", "B01001_029", "B01001_030", 
                 "B01001_031", "B01001_032", "B01001_033", "B01001_034",
+                # Population over 70
+                "B01001_022", "B01001_023", "B01001_024", "B01001_025", 
                 # Race counts
                 "B03002_001", "B03002_002", "B03002_003", "B03002_004",
                 "B03002_005", "B03002_006", "B03002_007", "B03002_008",
@@ -65,18 +67,18 @@ panel <-
 
 panel_bu <- panel
 
-write_csv(panel, "panel_pull.csv")
+write_csv(panel_bu, "panel_pull.csv")
 
 
 # CLEAN UP ====
 
 # list to use in select()
 keep <- c("year", "GEOID", "NAME", "poptotal", "noncit", "popu18", "popu25", 
-          "pop3o", "pop324", "vap", "medage", "incmed", "incpc", "gini", "hs",  
-          "ged", "some1", "some2", "assoc", "bacc", "mast", "prof", "phd", 
-          "enroll", "pop_check", "nothilat", "white", "black", "amind", "asian",
-          "hawpi", "other", "multi", "hilat", "hpiom", "white_prop", 
-          "black_prop", "amind_prop", "asian_prop", "hilat_prop", 
+          "pop3o", "pop324", "pop70_prop",  "vap", "medage", "incmed", "incpc",
+          "gini", "hs", "ged", "some1", "some2", "assoc", "bacc", "mast",
+          "prof", "phd", "enroll", "pop_check", "nothilat", "white", "black",
+          "amind", "asian", "hawpi", "other", "multi", "hilat", "hpiom",
+          "white_prop", "black_prop", "amind_prop", "asian_prop", "hilat_prop", 
           "other_prop", "nonwh_prop", "race_check")
 
 
@@ -117,6 +119,8 @@ panel <- panel %>%
       B01001_027E + B01001_028E + B01001_029E + B01001_030E + 
       B01001_031E + B01001_032E + B01001_033E + B01001_034E,
     pop324 = popu25 - (poptotal - pop3o),
+    pop70o = B01001_022E + B01001_023E + B01001_024E + B01001_025E,
+    pop70_prop = pop70o / poptotal,
     vap = poptotal - popu18 - noncit,
     hpiom = hawpi + other + multi,
     white_prop = white / pop_check,
