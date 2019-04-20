@@ -298,9 +298,100 @@ describe(subset(stpan, year == "2016", select = ed_index))
 
 # INCOME INDEX ====
 
-# first, convert 2012 dollars to 2016
+# first, convert 2012 dollars to 2016,
+# Using BLS CPI Inflation calculator, June-June
 
+  # # test
+  # test <- stpan
+  # test$incmed[test$year == "2012"] <- 
+  #   test$incmed[test$year == "2012"] * 1.0503
+  # sample <- sample(1:102, 10, replace = F)
+  # test[c(sample), "incmed"]
+  # stpan[c(sample), "incmed"]
+  # # works!
+  # rm(test)
 
-# Initial checkout:
+# for real
+stpan$incmed[stpan$year == "2012"] <- 
+  stpan$incmed[stpan$year == "2012"] * 1.0503
+stpan$incpc[stpan$year == "2012"] <- 
+  stpan$incpc[stpan$year == "2012"] * 1.0503
+
+# check out median income
 describe(subset(stpan, year == "2012", select = incmed))
 describe(subset(stpan, year == "2016", select = incmed))
+# max goalpost of $67,730 seems a little high, but was set at $55K
+# in 2005 $, so maybe recessional effects still at play?
+# lower goalpost of $16009 is probably ok, though.
+
+
+# check out per capita income
+describe(subset(stpan, year == "2012", select = incpc))
+describe(subset(stpan, year == "2016", select = incpc))
+# per capita's look pretty similar to medians
+# just go with median & present goalposts for now
+
+
+# construct index
+
+incmin <- 16009
+incmax <- 67730
+
+stpan <- stpan %>% 
+  mutate(inc_index = (log(incmed) - log(incmin)) / 
+           (log(incmax) - log(incmin)) * 10)
+
+describe(subset(stpan, year == "2012", select = inc_index))
+describe(subset(stpan, year == "2016", select = inc_index))
+# median close enough to 5 -- roll with it.
+
+
+
+# HDI ====
+
+# create index
+stpan <- stpan %>% 
+  mutate(hdi = (health_index * ed_index * inc_index) ^ (1/3) )
+
+# descriptive stats per year
+describe(subset(stpan, year == "2012", select = hdi))
+describe(subset(stpan, year == "2016", select = hdi))
+# median a little above 5, where it should be
+
+# create simulated normals
+mean12 <- describe(subset(stpan, year == "2012", select = hdi))$mean
+sd12 <- describe(subset(stpan, year == "2012", select = hdi))$sd
+mean16 <- describe(subset(stpan, year == "2016", select = hdi))$mean
+sd16 <- describe(subset(stpan, year == "2016", select = hdi))$sd
+norm12 <- rnorm(51, mean = mean12, sd = sd12)
+norm16 <- rnorm(51, mean = mean12, sd = sd16)
+
+# 2012 histogram
+stpan %>% 
+  filter(year == "2012") %>% 
+  ggplot(mapping = aes(x = hdi)) +
+    geom_histogram(bins = 9, mapping = aes(y = ..density..),
+                   fill = "grey70", color = "white") +
+    geom_density(color = "orange", size = 1.2) +
+    geom_density(mapping = aes(x = norm12),
+                 color = "seagreen", size = 1.2) +
+    geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
+    theme_minimal()
+# close enough!
+
+# 2016 histogram
+stpan %>% 
+  filter(year == "2016") %>% 
+  ggplot(mapping = aes(x = hdi)) +
+    geom_histogram(bins = 9, mapping = aes(y = ..density..),
+                   fill = "grey70", color = "white") +
+    geom_density(color = "orange", size = 1.2) +
+    geom_density(mapping = aes(x = norm16),
+                 color = "seagreen", size = 1.2) +
+    geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
+    theme_minimal()
+# close enough!
+
+
+# TURNOUT ====
+# 
