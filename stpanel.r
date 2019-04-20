@@ -7,8 +7,8 @@ library(tidyverse)
 
 # possible differences b/w avaialability in each year, but probably not
 # for anything I'm interested in
-vars16 <- load_variables(2016, "acs1", cache = T)
-vars12 <- load_variables(2012, "acs1", cache = T)
+# vars16 <- load_variables(2016, "acs1", cache = T)
+# vars12 <- load_variables(2012, "acs1", cache = T)
 
 
 # NOTE: 5-yr ESTIMATES OVERLAP, CONSIDERED INAPPROPRIATE FOR COMPARISON!
@@ -22,8 +22,9 @@ vars12 <- load_variables(2012, "acs1", cache = T)
 # https://web.archive.org/web/20190418181630/https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html
 
 
-# SINGLE-YEAR ACS PULL ====
+# ACS PULL ====
 
+# variables to pull
 stpan_vars <- c(# Total Pop, Under 18, Non-Citizen 18+, & Median Age,
                 "B01001_001", "B09001_001", "B16008_046", "B01002_001",
                 # Gini, median earnings, per capita income
@@ -72,7 +73,7 @@ write_csv(stpan_bu, "stpan_pull.csv")
 # CLEAN UP ====
 
 # list to use in select()
-keep <- c("GEOID", "year", "d16", "NAME", "poptotal", "noncit", "popu18",
+keep <- c("GEOID", "year", "d16", "state", "poptotal", "noncit", "popu18",
           "popu25", "pop3o", "pop324", "vapacs", "medage", "incmed",
           "incpc", "gini", "hs", "ged", "some1", "some2", "assoc", "bacc",
           "mast", "prof", "phd", "enroll", "pop_check", "nothilat", "white",
@@ -83,6 +84,7 @@ keep <- c("GEOID", "year", "d16", "NAME", "poptotal", "noncit", "popu18",
 
 stpan <- stpan %>%
   rename(
+    state = NAME,
     poptotal = B01001_001E,
     popu18 = B09001_001E,
     noncit = B16008_046E,
@@ -131,16 +133,29 @@ stpan <- stpan %>%
     nonwh_prop = 1 - white_prop
   ) %>% 
   select(keep) %>% 
-  filter(NAME != "Puerto Rico")
+  filter(state != "Puerto Rico")
 
 
+# add state abbreviations
+st <- state.abb
+which(st == "DE")
+st <- append(st, "DC", after = 7)
+state <- state.name
+which(state == "Delaware")
+state <- append(state, "District of Columbia", after = 7)
+states <- tibble(state, st)
+
+
+# join
+stpan <- merge(stpan, states, by = "state")
+# rearrange
+stpan <- stpan[, c(2:4,1,45,5:44)]
 # sort into panels
 stpan <- arrange(stpan, GEOID, year)
 
 
-# backup
+# backup again
 stpan_bu2 <- stpan
-
 
 
 # write out the clean version
@@ -148,11 +163,43 @@ write_csv(stpan, "stpan.csv")
 
 
 
-# HEALTH INDEX ====
+# IMPORT LIFE EXPENCTANCY VARIABLES ====
+
+# Source: United States Mortality Database, by UC Berkeley Demography,
+# https://usa.mortality.org/
+# Citation:
+# *United States Mortality DataBase.* University of California, Berkeley (USA).
+# Available at usa.mortality.org (data downloaded on Apr 20, 2019).
+
+# Create vector of file names
+mortvect <- c()
+for (i in st) {
+  mortvect <- c(mortvect, paste0("sources/mort/", i, "_bltper_5x1.csv"))
+}
 
 
+# loop over files & get 2012/2016 life expectancy
+le <- data.frame()
+for (i in 1:length(mortvect)) {
+  tmp <- read_csv(mortvect[i]) %>%
+    filter(Year == 2012 & Age == 0 | Year == 2016 & Age == 0) %>% 
+    select(PopName, Year, ex) %>% 
+    rename(st = PopName,
+           year = Year,
+           lexp = ex)
+  le <- rbind(le, tmp)
+}
+rm(tmp)
 
 
+# covert year to character for merging.
+le$year <- as.character(le$year)
 
-View(stpan[sample(1:102, 10, replace = F), c(1:3, 44:45)])
+# join
+stpan <- left_join(stpan, le, by = c("st" = "st", "year" = "year"))
+
+# Spot Check
+View(stpan[sample(1:102, 10, replace = F), c(1:5, 46)])
+
+
 

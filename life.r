@@ -13,12 +13,7 @@ for (i in states) {
 }
 
 
-# render length and list of file names
-lst <- vector("list", length(mortvect))
-names(lst) <- mortvect
-
-
-# loop
+# loop over files & get 2012/2016 life expectancy
 le <- tibble()
 for (i in 1:length(mortvect)) {
   tmp <- read_csv(mortvect[i]) %>%
