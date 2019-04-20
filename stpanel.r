@@ -203,3 +203,104 @@ View(stpan[sample(1:102, 10, replace = F), c(1:5, 46)])
 
 
 
+# HEALTH INDEX ====
+
+# get observed Max & Min for each year
+  # 2012: min = 75.06, max = 81.42
+  describe(subset(stpan, year == "2012", select = lexp))
+  # 2012: min = 74.72, max = 81.74
+  describe(subset(stpan, year == "2016", select = lexp))
+  
+# based on above, SSRA goalposts of 66-90 should be OK
+lemin <- 66
+lemax <- 90
+
+# construct index
+stpan <- stpan %>% 
+  mutate(health_index = ((lexp - lemin) / (lemax - lemin)) * 10)
+
+# check out
+describe(subset(stpan, year == "2012", select = health_index))
+describe(subset(stpan, year == "2016", select = health_index))
+# medians close enough to 5. Lowish range. Go with it.
+
+
+
+# ATTAINMENT INDEX ====
+
+# bin all >= HS into HS, Bacc, higher, (bacc is already binned)
+# then generate population proportions FOR POP 25 & OVER,
+# then aggregate attainment score
+stpan <- stpan %>%
+  mutate(hsplus = hs+ged+some1+some2+assoc+bacc+mast+prof+phd,
+         baccplus = bacc+mast+prof+phd,
+         mastplus = mast+prof+phd,
+         hsprop = hsplus / (poptotal - popu25),
+         baccprop = baccplus / (poptotal - popu25),
+         gradprop = mastplus / (poptotal - popu25),
+         attain_score = hsprop + baccprop + gradprop)
+
+# SSRA goalposts of 0.5, 2 should be ok
+describe(subset(stpan, year == "2012", select = attain_score))
+describe(subset(stpan, year == "2016", select = attain_score))
+
+attmin <- 0.5
+attmax <- 2
+
+# create index
+stpan <- stpan %>% 
+  mutate(attain_index = ((attain_score - attmin) / (attmax - attmin)) * 10)
+
+# check out
+describe(subset(stpan, year == "2012", select = attain_index))
+describe(subset(stpan, year == "2016", select = attain_index))
+# medians close to 5
+
+
+
+
+# ENROLLMENT INDEX ====
+
+stpan <- stpan %>% 
+  mutate(enroll_prop = enroll / pop324)
+
+describe(subset(stpan, year == "2012", select = enroll_prop))
+describe(subset(stpan, year == "2016", select = enroll_prop))
+# Goalposts of lower
+
+enrollmin <- .60
+enrollmax <- .95
+
+stpan <- stpan %>% 
+  mutate(enroll_index = ((enroll_prop - enrollmin) / 
+                           (enrollmax - enrollmin)) * 10)
+
+describe(subset(stpan, year == "2012", select = enroll_index))
+describe(subset(stpan, year == "2016", select = enroll_index))
+# medians are high, but perhaps they'll get moderated in the overall
+# education index? Go with it for now
+
+
+# OVERALL EDUCATION INDEX ====
+
+stpan <- stpan %>% 
+  mutate(ed_index = ((2/3) * attain_index) + ((1/3) * enroll_index))
+
+describe(subset(stpan, year == "2012", select = ed_index))
+describe(subset(stpan, year == "2016", select = ed_index))
+# medians are at 6 - redo with higher bottom goalpost?
+# for now, leave it. I think using the GEOMETRIC mean, rather
+# than SSRA's arithmetic mean, will prevent undue influence
+# of any single index, via:
+# https://en.wikipedia.org/wiki/Geometric_mean#Applications,
+# with specific reference to HDI
+
+
+# INCOME INDEX ====
+
+# first, convert 2012 dollars to 2016
+
+
+# Initial checkout:
+describe(subset(stpan, year == "2012", select = incmed))
+describe(subset(stpan, year == "2016", select = incmed))
