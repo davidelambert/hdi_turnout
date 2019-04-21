@@ -2,6 +2,7 @@ library(psych)
 library(tidyverse)
 library(grid)
 library(gridExtra)
+library(gtable)
 
 load("stpan.Rdata")
 
@@ -66,7 +67,7 @@ scat12_vep <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -100,7 +101,7 @@ scat12_vap <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -134,7 +135,7 @@ scat12_acs <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -173,7 +174,7 @@ scat16_vep <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -207,7 +208,7 @@ scat16_vap <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -241,7 +242,7 @@ scat16_acs <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0,
         color = "grey70"
       ) +
@@ -282,7 +283,7 @@ pooled_vep <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0
       ) +
       scale_color_manual(values = greys) +
@@ -320,7 +321,7 @@ pooled_vap <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0
       ) +
       scale_color_manual(values = greys) +
@@ -357,7 +358,7 @@ pooled_acs <-
       geom_point(
         shape = 16,
         alpha = .7,
-        size = 4,
+        size = 3,
         stroke = 0
       ) +
       scale_color_manual(values = greys) +
@@ -386,3 +387,89 @@ pooled_acs <-
         y = ""
       )
 pooled_acs  
+
+
+# SCATTERPLOT GRID ====
+
+
+
+grid.arrange(scat12_vap, scat12_vep, scat12_acs,
+             scat16_vap, scat16_vep, scat16_acs,
+             pooled_vap, pooled_vep, pooled_acs,
+             top = textGrob(
+               "American HDI & Voter Turnout",
+               gp = gpar(fontsize = 20,
+                         fontface = "bold")
+             )
+             )
+
+
+
+# COWPLOT ====
+
+# GROB TRIALS ====
+title <-
+  textGrob(
+    "American HDI & Voter Turnout",
+    gp = gpar(fontsize = 20,
+              fontface = "bold")
+  )
+
+xtitle <-
+  textGrob(
+    "American HDI",
+    gp = gpar(fontsize = 15,
+              fontface = "bold")
+  )
+
+ytitle <-
+  textGrob(
+    "Turnout",
+    rot = 90,
+    gp = gpar(fontsize = 15,
+              fontface = "bold")
+  )
+
+caption <- 
+  textGrob(
+    "Sources:
+    US Census Bureau, 2012 & 2016 ACS 1-year estimates;
+    US Elections Project;
+    Social Science Research Council American HDI Methodology",
+    gp = gpar(fontsize = 5,
+              fontface = "italic",
+              fill = "grey70")
+  )
+
+
+
+a1 <- ggplotGrob(scat12_vap)
+a2 <- ggplotGrob(scat12_vep)
+a3 <- ggplotGrob(scat12_acs)
+b1 <- ggplotGrob(scat16_vap)
+b2 <- ggplotGrob(scat16_vep)
+b3 <- ggplotGrob(scat16_acs)
+c1 <- ggplotGrob(pooled_vap)
+c2 <- ggplotGrob(pooled_vep)
+c3 <- ggplotGrob(pooled_acs)
+
+grobs <- gList("title",
+               "a1", "a2", "a3",
+               "xtitle", "b1", "b2", "b3",
+               "c1", "c2", "c3",
+               "caption")
+
+
+
+grid.arrange(
+  grobs = glist,
+  widths = c(1,5,5,5),
+  layout_matrix =
+    rbind(
+      c(NA, 1, 1, NA),
+      c(NA, 2, 3, 4),
+      c(5, 6, 7, 8),
+      c(NA, 9, 10, 11),
+      c(NA, NA, NA, 12)
+    )
+)
