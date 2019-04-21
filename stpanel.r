@@ -163,7 +163,7 @@ write_csv(stpan, "stpan.csv")
 
 
 
-# IMPORT LIFE EXPENCTANCY VARIABLES ====
+# LIFE EXPENCTANCY ====
 
 # Source: United States Mortality Database, by UC Berkeley Demography,
 # https://usa.mortality.org/
@@ -189,7 +189,7 @@ for (i in 1:length(mortvect)) {
            lexp = ex)
   le <- rbind(le, tmp)
 }
-rm(tmp)
+rm(list = c("tmp", "le"))
 
 
 # covert year to character for merging.
@@ -266,7 +266,7 @@ stpan <- stpan %>%
 
 describe(subset(stpan, year == "2012", select = enroll_prop))
 describe(subset(stpan, year == "2016", select = enroll_prop))
-# Goalposts of lower
+# Goalposts of .6-.95 should be ok
 
 enrollmin <- .60
 enrollmax <- .95
@@ -370,7 +370,7 @@ norm16 <- rnorm(51, mean = mean12, sd = sd16)
 stpan %>% 
   filter(year == "2012") %>% 
   ggplot(mapping = aes(x = hdi)) +
-    geom_histogram(bins = 9, mapping = aes(y = ..density..),
+    geom_histogram(bins = 11, mapping = aes(y = ..density..),
                    fill = "grey70", color = "white") +
     geom_density(color = "orange", size = 1.2) +
     geom_density(mapping = aes(x = norm12),
@@ -383,15 +383,111 @@ stpan %>%
 stpan %>% 
   filter(year == "2016") %>% 
   ggplot(mapping = aes(x = hdi)) +
-    geom_histogram(bins = 9, mapping = aes(y = ..density..),
+    geom_histogram(bins = 11, mapping = aes(y = ..density..),
                    fill = "grey70", color = "white") +
     geom_density(color = "orange", size = 1.2) +
     geom_density(mapping = aes(x = norm16),
                  color = "seagreen", size = 1.2) +
-    geom_abline(slope = 0, intercept = 0, size = 1, color = "grey80") +
+    geom_abline(slope = 0, intercept = 0, size = 1.2, color = "grey70") +
     theme_minimal()
 # close enough!
 
 
 # TURNOUT ====
-# 
+
+# From Michael McDonald's US ELections Project
+# http://www.electproject.org/
+
+# import 2012
+to12 <-
+  read_csv(
+    "sources/2012 November General Election v2.0 - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2012",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+
+# import 2016
+to16 <-
+  read_csv(
+    "sources/2016 November General Election - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "site", "status", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2016",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+
+
+# stack each year, then sort into panels
+turnout <- rbind(to12, to16)
+turnout <- arrange(turnout, st, year)
+
+
+# join to main dataset
+stpan <- left_join(stpan, turnout, by = c("st" = "st", "year" = "year"))
+
+
+# calculate turnout w/ ACS vap (pop-under18-noncit over 18)
+stpan <- stpan %>% 
+  mutate(toacs = presvotes / vapacs)
+
+
+
+# BASIC CORRELATIONS ====
+
+# 2012: VEP .42 / VAP .24 / ACS .45
+  cor(
+    subset(stpan, year == "2012", select = hdi),
+    subset(stpan, year == "2012", select = tovep)
+  )
+  
+  cor(
+    subset(stpan, year == "2012", select = hdi),
+    subset(stpan, year == "2012", select = tovap)
+  )
+  
+  cor(
+    subset(stpan, year == "2012", select = hdi),
+    subset(stpan, year == "2012", select = toacs)
+  )
+  
+
+
+# 2016: VEP .44 / VAP .25 / ACS .46 -- SIMILAR to 2012, GOOD!
+  cor(
+    subset(stpan, year == "2016", select = hdi),
+    subset(stpan, year == "2016", select = tovep)
+  )
+  
+  cor(
+    subset(stpan, year == "2016", select = hdi),
+    subset(stpan, year == "2016", select = tovap)
+  )
+  
+  cor(
+    subset(stpan, year == "2016", select = hdi),
+    subset(stpan, year == "2016", select = toacs)
+  )
+
+  
+# POOLED: VEP .43 / VAP .25 / ACS .46 -- Similar, as expected
+  cor(stpan$hdi, stpan$tovep)
+  cor(stpan$hdi, stpan$tovap)
+  cor(stpan$hdi, stpan$toacs)
+  
+  
