@@ -1,51 +1,58 @@
+library(psych)
 library(tidyverse)
 library(grid)
 library(gridExtra)
 
-
+load("stpan.Rdata")
 
 
 # BASIC CORRELATIONS ====
 
 # 2012: VEP .42 / VAP .24 / ACS .45
+cor12_vep <- 
   cor(
     subset(stpan, year == "2012", select = hdi),
     subset(stpan, year == "2012", select = tovep)
-  )
-  
+  )[1]
+
+cor12_vap <-   
   cor(
     subset(stpan, year == "2012", select = hdi),
     subset(stpan, year == "2012", select = tovap)
-  )
-  
+  )[1]
+
+cor12_acs <-   
   cor(
     subset(stpan, year == "2012", select = hdi),
     subset(stpan, year == "2012", select = toacs)
-  )
+  )[1]
   
 
 
 # 2016: VEP .44 / VAP .25 / ACS .46 -- SIMILAR to 2012, GOOD!
+cor16_vep <- 
   cor(
     subset(stpan, year == "2016", select = hdi),
     subset(stpan, year == "2016", select = tovep)
-  )
-  
+  )[1]
+
+cor16_vap <-   
   cor(
     subset(stpan, year == "2016", select = hdi),
     subset(stpan, year == "2016", select = tovap)
-  )
+  )[1]
   
+cor16_acs <- 
   cor(
     subset(stpan, year == "2016", select = hdi),
     subset(stpan, year == "2016", select = toacs)
-  )
+  )[1]
 
   
 # POOLED: VEP .43 / VAP .25 / ACS .46 -- Similar, as expected
-  cor(stpan$hdi, stpan$tovep)
-  cor(stpan$hdi, stpan$tovap)
-  cor(stpan$hdi, stpan$toacs)
+corpool_vep <- cor(stpan$hdi, stpan$tovep)[1]
+corpool_vap <- cor(stpan$hdi, stpan$tovap)[1]
+corpool_acs <- cor(stpan$hdi, stpan$toacs)[1]
   
 
   
@@ -79,9 +86,9 @@ scat12_vep <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2012 VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2012 VEP, r = ", round(cor12_vep, 3)),
+        x = "",
+        y = ""
       )
 scat12_vep  
 
@@ -113,9 +120,9 @@ scat12_vap <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2012 VAP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2012 VAP, r = ", round(cor12_vap, 3)),
+        x = "",
+        y = ""
       )
 scat12_vap  
 
@@ -147,9 +154,9 @@ scat12_acs <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2012 ACS VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2012 ACS VEP, r = ", round(cor12_acs, 3)),
+        x = "",
+        y = ""
       )
 scat12_acs  
 
@@ -186,9 +193,9 @@ scat16_vep <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2016 VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2016 VEP, r = ", round(cor16_vep, 3)),
+        x = "",
+        y = ""
       )
 scat16_vep  
 
@@ -220,9 +227,9 @@ scat16_vap <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2016 VAP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2016 VAP, r = ", round(cor16_vap, 3)),
+        x = "",
+        y = ""
       )
 scat16_vap  
 
@@ -254,9 +261,9 @@ scat16_acs <-
       scale_y_continuous(limits = c(.35, .8)) +
       theme_minimal() +
       labs(
-        title = "2016 ACS VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("2016 ACS VEP, r = ", round(cor16_acs, 3)),
+        x = "",
+        y = ""
       )
 scat16_acs  
 
@@ -299,9 +306,9 @@ pooled_vep <-
         legend.title = element_blank()
       ) +
       labs(
-        title = "Pooled VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("Pooled VEP, r = ", round(corpool_vep, 3)),
+        x = "",
+        y = ""
       )
 pooled_vep  
 
@@ -337,9 +344,9 @@ pooled_vap <-
         legend.title = element_blank()
       ) +
       labs(
-        title = "Pooled VAP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("Pooled VAP, r = ", round(corpool_vap, 3)),
+        x = "",
+        y = ""
       )
 pooled_vap  
 
@@ -374,8 +381,8 @@ pooled_acs <-
         legend.title = element_blank()
       ) +
       labs(
-        title = "Pooled ACS VEP",
-        x = "HDI",
-        y = "Turnout"
+        title = paste0("Pooled ACS VEP, r = ", round(corpool_acs, 3)),
+        x = "",
+        y = ""
       )
 pooled_acs  
