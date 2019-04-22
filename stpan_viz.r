@@ -423,4 +423,54 @@ addleg
 
 
 
-  
+
+# CORRELOGRAM ====
+
+# via GGally::
+
+# subset variables to correlate by year & pooled
+
+cormat12 <- stpan %>% 
+  filter(year == "2012") %>% 
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+cormat16 <- stpan %>% 
+  filter(year == "2016") %>% 
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+cormatpool <- stpan %>%
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+
+
+# correlograms
+
+corgram12 <- ggcorr(cormat12, low = "navyblue", 
+                    mid = "white", high = "darkred",
+                    label = TRUE, label_round = 2, 
+                    hjust = 0.8, layout.exp = 1)
+
+corgram16 <- ggcorr(cormat16, low = "darkorchid4",
+                    mid = "white", high = "yellow",
+                    label = TRUE, label_round = 2,
+                    hjust = 0.8, layout.exp = 1)  
+
+corgrampool <- ggcorr(cormatpool, low = "seagreen",
+                    mid = "white", high = "orange",
+                    label = TRUE, label_round = 2,
+                    hjust = 0.8, layout.exp = 1)  
+
+
+
