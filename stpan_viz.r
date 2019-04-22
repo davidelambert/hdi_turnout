@@ -89,7 +89,7 @@ scat12_vep <-
       theme_minimal() +
       labs(
         title = paste0("2012 VEP, r = ", round(cor12_vep, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -122,7 +122,7 @@ scat12_vap <-
       theme_minimal() +
       labs(
         title = paste0("2012 VAP, r = ", round(cor12_vap, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -155,7 +155,7 @@ scat12_acs <-
       theme_minimal() +
       labs(
         title = paste0("2012 ACS VEP, r = ", round(cor12_acs, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -174,7 +174,7 @@ scat16_vep <-
         alpha = .7,
         size = 3,
         stroke = 0,
-        color = "grey70"
+        color = "grey30"
       ) +
       geom_smooth(
         se = FALSE,
@@ -193,7 +193,7 @@ scat16_vep <-
       theme_minimal() +
       labs(
         title = paste0("2016 VEP, r = ", round(cor16_vep, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -207,7 +207,7 @@ scat16_vap <-
         alpha = .7,
         size = 3,
         stroke = 0,
-        color = "grey70"
+        color = "grey30"
       ) +
       geom_smooth(
         se = FALSE,
@@ -226,7 +226,7 @@ scat16_vap <-
       theme_minimal() +
       labs(
         title = paste0("2016 VAP, r = ", round(cor16_vap, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -240,7 +240,7 @@ scat16_acs <-
         alpha = .7,
         size = 3,
         stroke = 0,
-        color = "grey70"
+        color = "grey30"
       ) +
       geom_smooth(
         se = FALSE,
@@ -259,7 +259,7 @@ scat16_acs <-
       theme_minimal() +
       labs(
         title = paste0("2016 ACS VEP, r = ", round(cor16_acs, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -303,7 +303,7 @@ pooled_vep <-
       ) +
       labs(
         title = paste0("Pooled VEP, r = ", round(corpool_vep, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
 
@@ -340,7 +340,7 @@ pooled_vap <-
       ) +
       labs(
         title = paste0("Pooled VAP, r = ", round(corpool_vap, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
  
@@ -377,7 +377,7 @@ pooled_acs <-
       ) +
       labs(
         title = paste0("Pooled ACS VEP, r = ", round(corpool_acs, 3)),
-        x = "AmHDI",
+        x = "HDI",
         y = "Turnout"
       )
  
@@ -409,7 +409,7 @@ grid <- plot_grid(scat12_vap, scat12_vep, scat12_acs,
 
 # create the title, then add it
 title <- ggdraw() +
-  draw_label("Modified* HDI and Voter Turnout",
+  draw_label("HDI* and Voter Turnout",
              fontface = "bold", size = 18, x = 0.03, hjust = 0)
 titled <- plot_grid(title, grid, ncol = 1, rel_heights = c(0.1, 1))
 titled
