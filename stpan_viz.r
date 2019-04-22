@@ -1,5 +1,6 @@
 library(psych)
 library(tidyverse)
+library(cowplot)
 library(grid)
 library(gridExtra)
 library(gtable)
@@ -88,10 +89,9 @@ scat12_vep <-
       theme_minimal() +
       labs(
         title = paste0("2012 VEP, r = ", round(cor12_vep, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat12_vep  
 
 # 2012 VAP
 scat12_vap <-   
@@ -122,10 +122,9 @@ scat12_vap <-
       theme_minimal() +
       labs(
         title = paste0("2012 VAP, r = ", round(cor12_vap, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat12_vap  
 
 # 2012 ACS VEP
 scat12_acs <-   
@@ -156,10 +155,9 @@ scat12_acs <-
       theme_minimal() +
       labs(
         title = paste0("2012 ACS VEP, r = ", round(cor12_acs, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat12_acs  
 
 
 
@@ -195,10 +193,9 @@ scat16_vep <-
       theme_minimal() +
       labs(
         title = paste0("2016 VEP, r = ", round(cor16_vep, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat16_vep  
 
 # 2016 VAP
 scat16_vap <-   
@@ -229,10 +226,9 @@ scat16_vap <-
       theme_minimal() +
       labs(
         title = paste0("2016 VAP, r = ", round(cor16_vap, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat16_vap  
 
 # 2016 ACS VEP
 scat16_acs <-   
@@ -263,10 +259,9 @@ scat16_acs <-
       theme_minimal() +
       labs(
         title = paste0("2016 ACS VEP, r = ", round(cor16_acs, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-scat16_acs  
 
 
 
@@ -308,10 +303,9 @@ pooled_vep <-
       ) +
       labs(
         title = paste0("Pooled VEP, r = ", round(corpool_vep, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-pooled_vep  
 
 
 # Pooled VAP
@@ -346,10 +340,10 @@ pooled_vap <-
       ) +
       labs(
         title = paste0("Pooled VAP, r = ", round(corpool_vap, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-pooled_vap  
+ 
 
 # Pooled ACS VEP
 pooled_acs <-   
@@ -383,10 +377,10 @@ pooled_acs <-
       ) +
       labs(
         title = paste0("Pooled ACS VEP, r = ", round(corpool_acs, 3)),
-        x = "",
-        y = ""
+        x = "AmHDI",
+        y = "Turnout"
       )
-pooled_acs  
+ 
 
 
 # SCATTERPLOT GRID ====
@@ -405,71 +399,23 @@ grid.arrange(scat12_vap, scat12_vep, scat12_acs,
 
 
 
-# COWPLOT ====
+# COWPLOT GRID ====
 
-# GROB TRIALS ====
-title <-
-  textGrob(
-    "American HDI & Voter Turnout",
-    gp = gpar(fontsize = 20,
-              fontface = "bold")
-  )
-
-xtitle <-
-  textGrob(
-    "American HDI",
-    gp = gpar(fontsize = 15,
-              fontface = "bold")
-  )
-
-ytitle <-
-  textGrob(
-    "Turnout",
-    rot = 90,
-    gp = gpar(fontsize = 15,
-              fontface = "bold")
-  )
-
-caption <- 
-  textGrob(
-    "Sources:
-    US Census Bureau, 2012 & 2016 ACS 1-year estimates;
-    US Elections Project;
-    Social Science Research Council American HDI Methodology",
-    gp = gpar(fontsize = 5,
-              fontface = "italic",
-              fill = "grey70")
-  )
+# Lay out the main grid
+grid <- plot_grid(scat12_vap, scat12_vep, scat12_acs,
+                  scat16_vap, scat16_vep, scat16_acs,
+                  pooled_vap, pooled_vep, pooled_acs)
 
 
-
-a1 <- ggplotGrob(scat12_vap)
-a2 <- ggplotGrob(scat12_vep)
-a3 <- ggplotGrob(scat12_acs)
-b1 <- ggplotGrob(scat16_vap)
-b2 <- ggplotGrob(scat16_vep)
-b3 <- ggplotGrob(scat16_acs)
-c1 <- ggplotGrob(pooled_vap)
-c2 <- ggplotGrob(pooled_vep)
-c3 <- ggplotGrob(pooled_acs)
-
-grobs <- gList("title",
-               "a1", "a2", "a3",
-               "xtitle", "b1", "b2", "b3",
-               "c1", "c2", "c3",
-               "caption")
+# create the title, then add it
+title <- ggdraw() +
+  draw_label("American HDI and Voter Turnout",
+             fontface = "bold", size = 18, x = 0.03, hjust = 0)
+titled <- plot_grid(title, grid, ncol = 1, rel_heights = c(0.1, 1))
+titled
 
 
+# create 
 
-grid.arrange(
-  grobs = glist,
-  widths = c(1,5,5,5),
-  layout_matrix =
-    rbind(
-      c(NA, 1, 1, NA),
-      c(NA, 2, 3, 4),
-      c(5, 6, 7, 8),
-      c(NA, 9, 10, 11),
-      c(NA, NA, NA, 12)
-    )
-)
+
+  
