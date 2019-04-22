@@ -1,9 +1,7 @@
 library(psych)
 library(tidyverse)
 library(cowplot)
-library(grid)
-library(gridExtra)
-library(gtable)
+library(GGally)
 
 load("stpan.Rdata")
 
@@ -385,21 +383,7 @@ pooled_acs <-
 
 # SCATTERPLOT GRID ====
 
-
-
-grid.arrange(scat12_vap, scat12_vep, scat12_acs,
-             scat16_vap, scat16_vep, scat16_acs,
-             pooled_vap, pooled_vep, pooled_acs,
-             top = textGrob(
-               "American HDI & Voter Turnout",
-               gp = gpar(fontsize = 20,
-                         fontface = "bold")
-             )
-             )
-
-
-
-# COWPLOT GRID ====
+# via cowplot::
 
 # Lay out the main grid
 grid <- plot_grid(scat12_vap, scat12_vep, scat12_acs,
@@ -409,36 +393,34 @@ grid <- plot_grid(scat12_vap, scat12_vep, scat12_acs,
 
 # create the title, then add it
 title <- ggdraw() +
-  draw_label("HDI* and Voter Turnout",
+  draw_label("HDI* and Voter Turnout by State",
              fontface = "bold", size = 18, x = 0.03, hjust = 0)
 titled <- plot_grid(title, grid, ncol = 1, rel_heights = c(0.1, 1))
-titled
 
 
 # create line legend
 orline <- ggdraw() +
   draw_line(x = c(0.1,1), y = c(0.5,0.5), color = "orange", size = 1.5)
 orcapt <- ggdraw() +
-  draw_label("LOESS", size = 12, x = .3)
+  draw_label("LOESS", size = 12, x = 0, hjust = -.25)
 grline <- ggdraw() +
   draw_line(x = c(0.1,1), y = c(0.5,0.5), color = "seagreen", size = 1.5)
 grcapt <- ggdraw() +
-  draw_label("OLS", size = 12, x = .25)
-spacer <- ggdraw() +
-  draw_line(x = c(0,1), y = c(0.5,0.5), color = "white", size = 1.5)
+  draw_label("OLS", size = 12, x = 0, hjust = -.25)
 caption <- ggdraw() +
   draw_label(
-    " Sources: American Community Survey 1-Year Estimates,
-    U.S. Elections Project, U.S. Mortality Database.
-    * Modified HDI adapted from Social Science Research Council's
-    \"American HDI\" methodology, substituting a geometric mean.",
-    size = 7, colour = "grey70", fontface = "italic", hjust = 1, x = .9
+    "Sources: American Community Survey 1-Year Estimates, U.S. Elections Project, and U.S. Mortality Database.
+    * Modified HDI adapted from Social Science Research Council's \"American HDI\" methodology, substituting a geometric mean.",
+    size = 9, colour = "grey70", fontface = "italic", hjust = 1, x = .9
   )
 legend <- plot_grid(orline, orcapt, grline, grcapt,
-                    caption, nrow = 1, hjust = 1)
+                    caption, nrow = 1, hjust = 1,
+                    rel_widths = c(.15, .15, .15, .15, 1))
 
 # add line legend to plot
 addleg <- plot_grid(titled, legend, ncol = 1, rel_heights = c(1, 0.1))
 addleg
+
+
 
   
