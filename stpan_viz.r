@@ -2,6 +2,7 @@ library(psych)
 library(tidyverse)
 library(cowplot)
 library(GGally)
+library(corrplot)
 
 load("stpan.Rdata")
 
@@ -54,7 +55,71 @@ corpool_vep <- cor(stpan$hdi, stpan$tovep)[1]
 corpool_vap <- cor(stpan$hdi, stpan$tovap)[1]
 corpool_acs <- cor(stpan$hdi, stpan$toacs)[1]
   
+# CORRELOGRAM ====
 
+# via GGally:: & corrplot::
+
+
+# subset variables to correlate by year & pooled
+
+cormat12 <- stpan %>% 
+  filter(year == "2012") %>% 
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+cormat16 <- stpan %>% 
+  filter(year == "2016") %>% 
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+cormatpool <- stpan %>%
+  select(
+    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
+    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
+    medage, health_index, attain_index, enroll_index, ed_index, inc_index
+  )
+
+
+
+
+
+
+# correlograms via GGally::
+
+corgram12 <- ggcorr(cormat12, low = "navyblue", 
+                    mid = "white", high = "darkred",
+                    label = TRUE, label_round = 2, 
+                    hjust = 0.8, layout.exp = 1)
+
+corgram16 <- ggcorr(cormat16, low = "darkorchid4",
+                    mid = "white", high = "yellow",
+                    label = TRUE, label_round = 2,
+                    hjust = 0.8, layout.exp = 1)  
+
+corgrampool <- ggcorr(cormatpool, low = "seagreen",
+                    mid = "white", high = "orange",
+                    label = TRUE, label_round = 2,
+                    hjust = 0.8, layout.exp = 1)  
+
+
+
+
+# via corrplot::
+
+corrplot(cor(cormat12), tl.col = "black", tl.srt = 45)
+corrplot(cor(cormat16), tl.col = "black", tl.srt = 45)
+corrplot(cor(cormatpool), tl.col = "black", tl.srt = 45)
+
+
+
+
+xxxxxxxxxxxxxx
   
 # 2012 SCATTERPLOTS ====
 
@@ -394,7 +459,7 @@ grid <- plot_grid(scat12_vap, scat12_vep, scat12_acs,
 # create the title, then add it
 title <- ggdraw() +
   draw_label("HDI* and Voter Turnout by State",
-             fontface = "bold", size = 18, x = 0.03, hjust = 0)
+             fontface = "bold", size = 18, x = 0.02, hjust = 0)
 titled <- plot_grid(title, grid, ncol = 1, rel_heights = c(0.1, 1))
 
 
@@ -411,10 +476,10 @@ caption <- ggdraw() +
   draw_label(
     "Sources: American Community Survey 1-Year Estimates, U.S. Elections Project, and U.S. Mortality Database.
     * Modified HDI adapted from Social Science Research Council's \"American HDI\" methodology, substituting a geometric mean.",
-    size = 9, colour = "grey70", fontface = "italic", hjust = 1, x = .9
+    size = 14, colour = "grey70", fontface = "italic", hjust = 1, x = .9
   )
 legend <- plot_grid(orline, orcapt, grline, grcapt,
-                    caption, nrow = 1, hjust = 1,
+                    caption, nrow = 1, hjust = 1.5,
                     rel_widths = c(.15, .15, .15, .15, 1))
 
 # add line legend to plot
@@ -422,55 +487,7 @@ addleg <- plot_grid(titled, legend, ncol = 1, rel_heights = c(1, 0.1))
 addleg
 
 
-
-
-# CORRELOGRAM ====
-
-# via GGally::
-
-# subset variables to correlate by year & pooled
-
-cormat12 <- stpan %>% 
-  filter(year == "2012") %>% 
-  select(
-    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
-    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
-    medage, health_index, attain_index, enroll_index, ed_index, inc_index
-  )
-
-cormat16 <- stpan %>% 
-  filter(year == "2016") %>% 
-  select(
-    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
-    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
-    medage, health_index, attain_index, enroll_index, ed_index, inc_index
-  )
-
-cormatpool <- stpan %>%
-  select(
-    tovap, tovep, toacs, poptotal, vapacs, hdi, gini, nonwh_prop, black_prop, 
-    hilat_prop, amind_prop, asian_prop, hawpi_prop, other_prop, multi_prop, 
-    medage, health_index, attain_index, enroll_index, ed_index, inc_index
-  )
-
-
-
-# correlograms
-
-corgram12 <- ggcorr(cormat12, low = "navyblue", 
-                    mid = "white", high = "darkred",
-                    label = TRUE, label_round = 2, 
-                    hjust = 0.8, layout.exp = 1)
-
-corgram16 <- ggcorr(cormat16, low = "darkorchid4",
-                    mid = "white", high = "yellow",
-                    label = TRUE, label_round = 2,
-                    hjust = 0.8, layout.exp = 1)  
-
-corgrampool <- ggcorr(cormatpool, low = "seagreen",
-                    mid = "white", high = "orange",
-                    label = TRUE, label_round = 2,
-                    hjust = 0.8, layout.exp = 1)  
+ggsave(filename = "scattermat.png", plot = addleg, scale = 3)
 
 
 
