@@ -141,3 +141,58 @@ View(recode[sample(1:3061692, 12, replace = F), ])
 
 # state groups ====
 
+state <- recode %>% 
+  zap_ipums_attributes() %>% 
+  group_by(state) %>% 
+  mutate(
+    poptotal = sum(perwt),
+    popu18 = sum(perwt[age < 18]),
+    pop25o = sum(perwt[age >= 25]),
+    pop324 = sum(perwt[age >= 3 & age <= 24]),
+    malepop = sum(perwt[sex == "Male"]),
+    femalepop = sum(perwt[sex == "Female"]),
+    whitepop = sum(perwt[race2 == "White"]),
+    blackpop = sum(perwt[race2 == "Black/African American/Negro"]),
+    hisppop = sum(perwt[race2 == "Hispanic of any race"]),
+    asianpop = sum(perwt[race2 == "Asian or Pacific Islander"]),
+    amindpop = sum(perwt[race2 == "American Indian or Alaska Native"]),
+    multipop = sum(perwt[race2 == "More than one race"]),
+    otherpop = sum(perwt[race2 == "Other race"]),
+    noncit = sum(perwt[cit == 0]),
+    enroll = sum(perwt[school == 1 & age >= 3 & age <= 24]),
+    nohs = sum(perwt[educ == "Less than HS" & age >= 25]),
+    hs = sum(perwt[educ == "HS/GED/Assoc/Some" & age >= 25]),
+    bacc = sum(perwt[educ == "Bacc/etc." & age >= 25]),
+    grad = sum(perwt[educ == "Mast/Doc/Prof" & age >= 25])
+  ) %>% 
+  summarise(
+    fips = mean(fips),
+    year = mean(year),
+    poptotal = mean(poptotal),
+    malepop = mean(malepop),
+    femalepop = mean(femalepop),
+    popu18 = mean(popu18),
+    pop25o = mean(pop25o),
+    pop324 = mean(pop324),
+    whitepop = mean(whitepop),
+    blackpop = mean(blackpop),
+    hisppop = mean(hisppop),
+    asianpop = mean(asianpop),
+    amindpop = mean(amindpop),
+    multipop = mean(multipop),
+    otherpop = mean(otherpop),
+    noncit = mean(noncit),
+    enroll = mean(enroll),
+    nohs = mean(nohs),
+    hs = mean(hs),
+    bacc = mean(bacc),
+    grad = mean(grad)
+  )
+
+
+medage <- recode %>% 
+  zap_ipums_attributes() %>% 
+  group_by(state, age) %>% 
+  mutate()
+
+
