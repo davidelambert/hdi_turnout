@@ -1,11 +1,10 @@
 sources/
 .Rproj.user/
-
 .Rhistory
 nc16.Rproj
-
 *.xlsx
 *.xls
 *.txt
 *.pdf
 .Rproj.user
+*.png
