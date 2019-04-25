@@ -4,10 +4,6 @@
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
        detach, character.only=TRUE, unload=TRUE)
 
-library(psych)
-library(AER)
-library(plm)
-library(lfe)
 library(haven)
 library(ipumsr)
 library(tidyverse)
@@ -25,9 +21,10 @@ View(data10[sample(1:3061692, 12, replace = F), ])
 
 # drop over/under detatiled columns
 data10 <- data10 %>% 
-  select(STATEFIP, PERWT, SEX, AGE, RACE, HISPAN,
+  select(STATEFIP, YEAR, PERWT, SEX, AGE, RACE, HISPAN,
          CITIZEN, SCHOOL, EDUCD, INCEARN) %>% 
   rename(fips = STATEFIP,
+         year = YEAR,
          perwt = PERWT,
          sex = SEX,
          age = AGE,
@@ -88,7 +85,6 @@ recode <- data10 %>%
   mutate(
     state = as_factor(lbl_clean(fips)), # state name as factor
     fips = as.numeric(fips), # plain numeric fips code
-    year = 2010,
     sex = as_factor(lbl_clean(sex)), # generic factor
     age = as.numeric(age),
     race = lbl_relabel(
@@ -130,7 +126,7 @@ recode <- data10 %>%
   )
 
 # reorder
-recode <- recode[, c(1, 11:12, 2:6, 13, 7:10)]
+recode <- recode[, c(1, 12, 2:6, 13, 7:11)]
 
 # sample -- looks good
 View(recode[sample(1:3061692, 12, replace = F), ])
@@ -193,7 +189,10 @@ state <- recode %>%
 
 # process intensive medians/means ====
 
-# median income
+# Also, for some reason, subsetting by age wasn't working in the main pipe
+# chain, especially in median() and mean(), so have to do them separately.
+
+# median income, converted to 2016 dollars (June-June, BLS CPI Inflation Calc.)
 incmed <- recode %>% 
   group_by(fips) %>%
   filter(age > 15 & income > 1) %>% 
@@ -203,7 +202,8 @@ incmed <- recode %>%
         income, times = perwt
       ),
       na.rm = T
-    )
+    ),
+    incmed = incmed * 1.1058
   ) %>% 
   summarise(
     incmed = mean(incmed)
@@ -219,7 +219,8 @@ incmean <- recode %>%
         income, times = perwt
       ),
       na.rm = TRUE
-    )
+    ),
+    incmean = incmean * 1.1058
   ) %>% 
   summarise(
     incmean = mean(incmean)
@@ -235,7 +236,8 @@ incpc <- recode %>%
         income, times = perwt
       ),
       na.rm = T
-    ) / sum(perwt)
+    ) / sum(perwt),
+    incpc =  incpc * 1.1058
   ) %>% 
   summarise(
     incpc = mean(incpc)
