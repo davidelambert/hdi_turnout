@@ -335,3 +335,120 @@ panel %>%
   ggplot(aes(y = hdi)) + 
   geom_boxplot() + coord_flip() + theme_minimal() + 
   facet_wrap(~year, ncol = 1)
+
+
+
+# TURNOUT ====
+
+# import 2008
+to08 <- 
+  read_csv(
+    "sources/2008 November General Election - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2008",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+  
+# Import 2010
+to10 <- 
+  read_csv(
+    "sources/2010 November General Election - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2010",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+  
+# Import 2012
+to12 <-
+  read_csv(
+    "sources/2012 November General Election v2.0 - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2012",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+
+# import 2014
+to14 <-
+  read_csv(
+    "sources/2014 November General Election - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2014",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+
+# import 2016
+to16 <-
+  read_csv(
+    "sources/2016 November General Election - Turnout Rates.csv",
+    skip = 3,
+    col_names = c("state", "site", "status", "veptotal", "tovep", "tovap",
+                  "totalvotes", "presvotes", "veppop", "vappop",
+                  "noncitpct", "prisonpop", "probatpop", "parolepop",
+                  "inelpop", "overseas", "st")
+  ) %>% 
+  mutate(
+    year = "2016",
+    tovep = as.numeric(str_sub(tovep, 1, 4)) / 100,
+    tovap = as.numeric(str_sub(tovap, 1, 4)) / 100
+  ) %>% 
+  select("year", "st", "presvotes", "tovep", "tovap")
+
+
+# stack each year, then sort into panels
+turnout <- rbind(to08, to10, to12, to14, to16)
+turnout <- arrange(turnout, st, year)
+
+
+# join to main dataset
+turnout$year <- as.numeric(turnout$year)
+panel <- left_join(panel, turnout, by = c("st" = "st", "year" = "year"))
+
+
+# add turnout based on ACS totalpop - under 18 - noncitizen 18+
+panel <- panel %>% 
+  mutate(
+    toacs = presvotes / (poptotal - popu18 - noncit18o)
+  )
+
+
+
+
+
+# WRITE OUT ====
+
+rm(list = setdiff(ls(), "panel"))
+
+save(panel, file = "bigpanel.Rdata")
+write_csv(panel, "bigpanel.csv")
