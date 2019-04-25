@@ -163,7 +163,8 @@ state <- recode %>%
     nohs = sum(perwt[educ == "Less than HS" & age >= 25]),
     hs = sum(perwt[educ == "HS/GED/Assoc/Some" & age >= 25]),
     bacc = sum(perwt[educ == "Bacc/etc." & age >= 25]),
-    grad = sum(perwt[educ == "Mast/Doc/Prof" & age >= 25])
+    grad = sum(perwt[educ == "Mast/Doc/Prof" & age >= 25]),
+    medage = median(rep(age, times = perwt))
   ) %>% 
   summarise(
     fips = mean(fips),
@@ -186,13 +187,73 @@ state <- recode %>%
     nohs = mean(nohs),
     hs = mean(hs),
     bacc = mean(bacc),
-    grad = mean(grad)
+    grad = mean(grad),
+    medage = mean(medage)
   )
 
 
+
+
+# process intensive medians/means ====
+
+# median income
+incmed <- recode %>% 
+  group_by(state) %>%
+  filter(age > 15 & income > 100) %>% 
+  mutate(
+    incmed = median(
+      rep(
+        income, times = perwt
+      ),
+      na.rm = T
+    )
+  ) %>% 
+  summarise(
+    fips = mean(fips),
+    incmed = mean(incmed)
+  )
+
+# mean income
+incmean <- recode %>% 
+  group_by(state) %>% 
+  mutate(
+    incmean = mean(
+      rep(
+        income, times = perwt
+      ),
+      na.rm = TRUE
+    )
+  ) %>% 
+  summarise(
+    fips = mean(fips),
+    incmean = mean(incmean)
+  )
+
+
+# per-capita income
+incpc <- recode %>% 
+  group_by(state) %>% 
+  mutate(
+    incpc = sum(
+      rep(
+        income, times = perwt
+      ),
+      na.rm = T
+    ) / sum(perwt)
+  ) %>% 
+  summarise(
+    fips = mean(fips),
+    incpc = mean(incpc)
+  )
+
+
+# median age
 medage <- recode %>% 
-  zap_ipums_attributes() %>% 
-  group_by(state, age) %>% 
-  mutate()
-
-
+  group_by(state) %>% 
+  mutate(
+    medage = median(rep(age, times = perwt))
+  ) %>% 
+  summarise(
+    fips = mean(fips),
+    medage = mean(medage)
+  )
