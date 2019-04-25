@@ -23,7 +23,7 @@ load("ipums16.Rdata")
 panel <- rbind(panel, state)
 panel <- arrange(panel, state, year)
 panel_bu <- panel
-rm("states")
+rm("state")
 
 
 
@@ -55,8 +55,27 @@ panel <- merge(panel, states, by = "state")
 # rearrange
 panel <- panel[, c(2,1,33,3,28:32,4:27)]
 
+
+# clean up
 rm("states")
 
+
+
+# sex & race/ethnicity proportions to examine as covariates
+panel <- panel %>% 
+  mutate(
+    maleprop = malepop / poptotal,
+    femaleprop = femalepop / poptotal,
+    whiteprop = whitepop / poptotal,
+    nonwhprop = 1 - whiteprop,
+    blackprop = blackpop / poptotal,
+    hispprop = hisppop / poptotal,
+    asianprop = asianpop / poptotal,
+    amindprop = amindpop / poptotal,
+    multiprop = multipop / poptotal,
+    otherprop = otherpop / poptotal
+  )
+  
 
 
 # LIFE EXPENCTANCY ====
@@ -98,7 +117,7 @@ for (i in 1:length(mortvect)) {
 panel <- left_join(panel, le, by = c("st" = "st", "year" = "year"))
 
 # Spot Check
-View(panel[sample(1:nrow(panel), 10, replace = F), c(1:4, 34)])
+View(panel[sample(1:nrow(panel), 10, replace = F), c(1:4, 44)])
 
 # clean up
 rm(list = c("tmp", "le"))
@@ -314,4 +333,5 @@ panel %>%
 
 panel %>% 
   ggplot(aes(y = hdi)) + 
-  geom_boxplot() + coord_flip() + theme_minimal() + facet_wrap(~year)
+  geom_boxplot() + coord_flip() + theme_minimal() + 
+  facet_wrap(~year, ncol = 1)
