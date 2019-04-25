@@ -10,12 +10,11 @@ library(plm)
 library(lfe)
 library(haven)
 library(ipumsr)
-library(srvyr)
 library(tidyverse)
 
 
 # import & back up
-ddi <- read_ipums_ddi("sources/ipums/usa_00003.xml")
+ddi <- read_ipums_ddi("sources/ipums/usa_00004.xml")
 data10 <- read_ipums_micro(ddi)
 data10_bu <- data10
 
@@ -27,7 +26,7 @@ View(data10[sample(1:3061692, 12, replace = F), ])
 # drop over/under detatiled columns
 data10 <- data10 %>% 
   select(STATEFIP, PERWT, SEX, AGE, RACE, HISPAN,
-         CITIZEN, SCHOOL, EDUCD, INCTOT) %>% 
+         CITIZEN, SCHOOL, EDUCD, INCEARN) %>% 
   rename(fips = STATEFIP,
          perwt = PERWT,
          sex = SEX,
@@ -37,7 +36,7 @@ data10 <- data10 %>%
          cit = CITIZEN,
          school = SCHOOL,
          educ = EDUCD,
-         income = INCTOT)
+         income = INCEARN)
 
 
 # VALUE LABEL EXPLORATION (SKIP) ====
@@ -163,8 +162,7 @@ state <- recode %>%
     nohs = sum(perwt[educ == "Less than HS" & age >= 25]),
     hs = sum(perwt[educ == "HS/GED/Assoc/Some" & age >= 25]),
     bacc = sum(perwt[educ == "Bacc/etc." & age >= 25]),
-    grad = sum(perwt[educ == "Mast/Doc/Prof" & age >= 25]),
-    medage = median(rep(age, times = perwt))
+    grad = sum(perwt[educ == "Mast/Doc/Prof" & age >= 25])
   ) %>% 
   summarise(
     fips = mean(fips),
@@ -187,8 +185,7 @@ state <- recode %>%
     nohs = mean(nohs),
     hs = mean(hs),
     bacc = mean(bacc),
-    grad = mean(grad),
-    medage = mean(medage)
+    grad = mean(grad)
   )
 
 
@@ -198,8 +195,8 @@ state <- recode %>%
 
 # median income
 incmed <- recode %>% 
-  group_by(state) %>%
-  filter(age > 15 & income > 100) %>% 
+  group_by(fips) %>%
+  filter(age > 15 & income > 1) %>% 
   mutate(
     incmed = median(
       rep(
@@ -209,13 +206,13 @@ incmed <- recode %>%
     )
   ) %>% 
   summarise(
-    fips = mean(fips),
     incmed = mean(incmed)
   )
 
 # mean income
 incmean <- recode %>% 
-  group_by(state) %>% 
+  group_by(fips) %>% 
+  filter(age > 15 & income > 1) %>% 
   mutate(
     incmean = mean(
       rep(
@@ -225,14 +222,13 @@ incmean <- recode %>%
     )
   ) %>% 
   summarise(
-    fips = mean(fips),
     incmean = mean(incmean)
   )
 
 
 # per-capita income
 incpc <- recode %>% 
-  group_by(state) %>% 
+  group_by(fips) %>% 
   mutate(
     incpc = sum(
       rep(
@@ -242,18 +238,46 @@ incpc <- recode %>%
     ) / sum(perwt)
   ) %>% 
   summarise(
-    fips = mean(fips),
     incpc = mean(incpc)
   )
 
 
 # median age
 medage <- recode %>% 
-  group_by(state) %>% 
+  group_by(fips) %>% 
   mutate(
     medage = median(rep(age, times = perwt))
   ) %>% 
   summarise(
-    fips = mean(fips),
     medage = mean(medage)
   )
+
+
+# mean age
+meanage <- recode %>% 
+  group_by(fips) %>% 
+  mutate(
+    meanage = mean(rep(age, times = perwt))
+  ) %>% 
+  summarise(
+    meanage = mean(meanage)
+  )
+
+
+
+# merge
+state <- 
+Reduce(
+  function(x, y) merge(x, y, by = "fips", all = TRUE),
+  list(state, incmed, incmean, incpc, medage, meanage)
+)
+
+
+
+
+# clean up & write out ====
+
+rm(list = setdiff(ls(), "state"))
+
+save(state, file = "ipums10.Rdata")
+write_csv(state, "ipums10.csv")
