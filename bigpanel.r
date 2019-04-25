@@ -135,3 +135,183 @@ describe(subset(panel, year == "2016", select = health_index))
 
 
 
+# ATTAINMENT INDEX ====
+
+# generate proportions for pop 25 & over
+panel <- panel %>% 
+  mutate(
+    hsplus = hs + bacc + grad,
+    baccplus = bacc + grad,
+    hsprop = hsplus / pop25o,
+    baccprop = baccplus / pop25o,
+    gradprop = grad / pop25o,
+    attain_score = hsprop + baccprop + gradprop
+  )
+
+# SSRA goalposts of 0.5, 2 should be ok
+describe(subset(panel, year == 2008, select = attain_score))
+describe(subset(panel, year == 2010, select = attain_score))
+describe(subset(panel, year == 2012, select = attain_score))
+describe(subset(panel, year == 2014, select = attain_score))
+describe(subset(panel, year == 2016, select = attain_score))
+
+attmin <- 0.5
+attmax <- 2
+
+# create index
+panel <- panel %>% 
+  mutate(attain_index = ((attain_score - attmin) / (attmax - attmin)) * 10)
+
+describe(subset(panel, year == 2008, select = attain_index))
+describe(subset(panel, year == 2010, select = attain_index))
+describe(subset(panel, year == 2012, select = attain_index))
+describe(subset(panel, year == 2014, select = attain_index))
+describe(subset(panel, year == 2016, select = attain_index))
+# looks good!
+
+
+
+# ENROLLMENT INDEX ====
+
+panel <- panel %>% 
+  mutate(enrollprop = enroll / pop324)
+
+describe(subset(panel, year == 2008, select = enrollprop))
+describe(subset(panel, year == 2010, select = enrollprop))
+describe(subset(panel, year == 2012, select = enrollprop))
+describe(subset(panel, year == 2014, select = enrollprop))
+describe(subset(panel, year == 2016, select = enrollprop))
+# SSRA's .60/.95 goalpsts should be ok
+
+enrollmin <- .60
+enrollmax <- .95
+
+panel <- panel %>% 
+  mutate(
+    enroll_index = ( (enrollprop - enrollmin) / (enrollmax - enrollmin) ) * 10
+  )
+
+describe(subset(panel, year == 2008, select = enroll_index))
+describe(subset(panel, year == 2010, select = enroll_index))
+describe(subset(panel, year == 2012, select = enroll_index))
+describe(subset(panel, year == 2014, select = enroll_index))
+describe(subset(panel, year == 2016, select = enroll_index))
+# ok
+
+
+
+
+
+# OVERALL EDUCATION INDEX ====
+
+panel <- panel %>% 
+  mutate(ed_index = ((2/3) * attain_index) + ((1/3) * enroll_index))
+
+describe(subset(panel, year == 2008, select = ed_index))
+describe(subset(panel, year == 2010, select = ed_index))
+describe(subset(panel, year == 2012, select = ed_index))
+describe(subset(panel, year == 2014, select = ed_index))
+describe(subset(panel, year == 2016, select = ed_index))
+# looks good!
+
+
+
+
+# INCOME INDEX ====
+  # 
+  # # Median income
+  # describe((subset(panel, year == 2008, select = incmed)))
+  # describe((subset(panel, year == 2010, select = incmed)))
+  # describe((subset(panel, year == 2012, select = incmed)))
+  # describe((subset(panel, year == 2014, select = incmed)))
+  # describe((subset(panel, year == 2016, select = incmed)))
+  # 
+  # 
+  # # Mean income
+  # describe((subset(panel, year == 2008, select = incmean)))
+  # describe((subset(panel, year == 2010, select = incmean)))
+  # describe((subset(panel, year == 2012, select = incmean)))
+  # describe((subset(panel, year == 2014, select = incmean)))
+  # describe((subset(panel, year == 2016, select = incmean)))
+  # 
+  # 
+  # # Per capita income
+  # describe((subset(panel, year == 2008, select = incpc)))
+  # describe((subset(panel, year == 2010, select = incpc)))
+  # describe((subset(panel, year == 2012, select = incpc)))
+  # describe((subset(panel, year == 2014, select = incpc)))
+  # describe((subset(panel, year == 2016, select = incpc)))
+
+
+# The above indicate median income w/ SRRA 2016$ goalposts should be OK
+incmin <- 16009
+incmax <- 67730
+
+panel <- panel %>% 
+  mutate(
+    inc_index = (log(incmed) - log(incmin)) / (log(incmax) - log(incmin)) * 10
+  )
+
+
+describe(subset(panel, year == 2008, select = inc_index))
+describe(subset(panel, year == 2010, select = inc_index))
+describe(subset(panel, year == 2012, select = inc_index))
+describe(subset(panel, year == 2014, select = inc_index))
+describe(subset(panel, year == 2016, select = inc_index))
+
+
+
+
+
+
+# HDI ====
+panel <- panel %>% 
+  mutate(hdi = (health_index * ed_index * inc_index) ^ (1/3) )
+
+
+describe(subset(panel, year == 2008, select = hdi))
+describe(subset(panel, year == 2010, select = hdi))
+describe(subset(panel, year == 2012, select = hdi))
+describe(subset(panel, year == 2014, select = hdi))
+describe(subset(panel, year == 2016, select = hdi))
+# looks good!
+
+
+
+# pooled histogram & boxplot
+meanpool <- describe(panel$hdi)$mean
+sdpool <- describe(panel$hdi)$sd
+normpool <- rnorm(255, mean = meanpool, sd = sdpool)
+
+panel %>% 
+  ggplot(mapping = aes(x = hdi)) +
+  geom_histogram(bins = 11, mapping = aes(y = ..density..),
+                 fill = "grey70", color = "white") +
+  geom_density(color = "orange", size = 1.2) +
+  geom_density(mapping = aes(x = normpool),
+               color = "seagreen", size = 1.2) +
+  geom_abline(slope = 0, intercept = 0, size = 1.2, color = "grey70") +
+  theme_minimal()
+
+panel %>% 
+  ggplot(aes(y = hdi)) + 
+  geom_boxplot() + coord_flip() + theme_minimal()
+
+
+
+
+# Year-Facetted Histograms & boxplots
+panel %>% 
+  ggplot(mapping = aes(x = hdi)) +
+  geom_histogram(bins = 11, mapping = aes(y = ..density..),
+                 fill = "grey70", color = "white") +
+  geom_density(color = "orange", size = 1.2) +
+  geom_density(mapping = aes(x = normpool),
+               color = "seagreen", size = 1.2) +
+  geom_abline(slope = 0, intercept = 0, size = 1.2, color = "grey70") +
+  theme_minimal() +
+  facet_wrap(~year)
+
+panel %>% 
+  ggplot(aes(y = hdi)) + 
+  geom_boxplot() + coord_flip() + theme_minimal() + facet_wrap(~year)
