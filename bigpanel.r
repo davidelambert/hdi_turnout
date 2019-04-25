@@ -51,9 +51,8 @@ states <- tibble(state, st)
 panel <- merge(panel, states, by = "state")
 
 
-
 # rearrange
-panel <- panel[, c(2,1,33,3,28:32,4:27)]
+panel <- panel[, c(2,1,35,3,30:34,4:29)]
 
 
 # clean up
@@ -117,7 +116,7 @@ for (i in 1:length(mortvect)) {
 panel <- left_join(panel, le, by = c("st" = "st", "year" = "year"))
 
 # Spot Check
-View(panel[sample(1:nrow(panel), 10, replace = F), c(1:4, 44)])
+View(panel[sample(1:nrow(panel), 10, replace = F), c(1:4, 46)])
 
 # clean up
 rm(list = c("tmp", "le"))

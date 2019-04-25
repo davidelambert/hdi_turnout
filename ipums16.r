@@ -16,7 +16,7 @@ data16_bu <- data16
 
 # check out
 str(data16)
-View(data16[sample(1:3156487, 12, replace = F), ])
+View(data16[sample(1:nrow(data16), 12, replace = F), ])
 
 
 # drop over/under detatiled columns
@@ -144,6 +144,7 @@ state <- recode %>%
     popu18 = sum(perwt[age < 18]),
     pop25o = sum(perwt[age >= 25]),
     pop324 = sum(perwt[age >= 3 & age <= 24]),
+    pop60o = sum(perwt[age >= 60]),
     malepop = sum(perwt[sex == "Male"]),
     femalepop = sum(perwt[sex == "Female"]),
     whitepop = sum(perwt[race2 == "White"]),
@@ -154,6 +155,7 @@ state <- recode %>%
     multipop = sum(perwt[race2 == "More than one race"]),
     otherpop = sum(perwt[race2 == "Other race"]),
     noncit = sum(perwt[cit == 0]),
+    noncit18o = sum(perwt[cit == 0 & age >= 18]),
     enroll = sum(perwt[school == 1 & age >= 3 & age <= 24]),
     nohs = sum(perwt[educ == "Less than HS" & age >= 25]),
     hs = sum(perwt[educ == "HS/GED/Assoc/Some" & age >= 25]),
@@ -169,6 +171,7 @@ state <- recode %>%
     popu18 = mean(popu18),
     pop25o = mean(pop25o),
     pop324 = mean(pop324),
+    pop60o = mean(pop60o),
     whitepop = mean(whitepop),
     blackpop = mean(blackpop),
     hisppop = mean(hisppop),
@@ -177,6 +180,7 @@ state <- recode %>%
     multipop = mean(multipop),
     otherpop = mean(otherpop),
     noncit = mean(noncit),
+    noncit18o = mean(noncit18o),
     enroll = mean(enroll),
     nohs = mean(nohs),
     hs = mean(hs),
