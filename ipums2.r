@@ -117,6 +117,13 @@ facs %>%
   summary.factor()
 # none missing for over 25s.
 
+# vectors of each category for recoding
+levels(facs$educd)
+vnohs <- levels(facs$educd)[1:16]
+vhsplus <- levels(facs$educd)[17:21]
+vbacc <- levels(facs$educd)[22]
+vgrad <- levels(facs$educd)[23:25]
+
 
 
 summary.factor(facs$incearn)
@@ -171,7 +178,26 @@ facs %>%
   ) %>% 
   select(empstat) %>% 
   summary()
-# 2334 missing. impute "Not in labor force"
+# 2334 missing. expand age range to 18-70
+facs %>% 
+  mutate(age = as.numeric(age)) %>% 
+  filter(
+    age >= 18,
+    age <= 70,
+    gq != "Group quarters--Institutions",
+    gq != "Other group quarters",
+    school != "Yes, in school"
+  ) %>% 
+  select(empstat) %>% 
+  summary()
+# none missing.
+# impute "Not in labor force" for all NA's. All are either
+  # under 18
+  # over 70
+  # in school
+  # institutionalized
+  # in nursing homes, group homes, etc.
+# all reasonably could/would have gotten filled/coded as N/A
 
 
 summary(facs$hcovany)
@@ -258,7 +284,38 @@ recode <- data %>%
         y = "Yes, in school",
         n = "No, not in school",
         n = "N/A"
-      )
+      ),
+    # 4-way attainment, from vectors coded in "INVESTIGATE FACTORS" section 
+    attain = lbl_clean(educd) %>% as_factor() %>% 
+      fct_collapse(
+        nohs = vnohs,
+        hsplus = vhsplus,
+        bacc = vbacc,
+        grad = vgrad
+      ),
+    # basic numeric earnings
+    earn = as.numeric(incearn),
+    # employment status, with N/A -> nilf, from investigatioon above
+    emp = lbl_clean(empstat) %>% as_factor() %>% 
+      fct_collapse(
+        emp = "Employed",
+        unemp = "Unemployed",
+        nilf = c("N/A", "Not in labor force")
+      ),
+    # convert  health coverage variables to factors
+    hcovany = lbl_clean(hcovany) %>% as_factor(),
+    hcovpub = lbl_clean(hcovpub) %>% as_factor(),
+    # create 3-way health coverage factor
+    hcov =
+      if_else(
+        hcovany == "No health insurance coverage",
+        "none",
+        if_else(
+          hcovpub == "With public health insurance coverage",
+          "public",
+          "private"
+        )
+      ) %>% as_factor()
   )
 
 
