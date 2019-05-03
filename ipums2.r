@@ -37,7 +37,7 @@ View(data[sample(1:nrow(data) , 10, replace = F), ])
 
 
 
-# FACTOR EXPLORATION ====
+# FACTORIZE ====
 
 facs <- data %>% 
   mutate(
@@ -62,6 +62,9 @@ facs <- data %>%
 
 View(facs[sample(1:nrow(facs) , 10, replace = F), ])
 
+
+
+# INVESTIGATE FACTORS ====
 
 summary(facs$metro)
 # no missings, but meanings not necessariy clear
@@ -114,10 +117,30 @@ facs %>%
   summary.factor()
 # none missing for over 25s.
 
+
+
 summary.factor(facs$incearn)
 levels(facs$incearn)
 # only special codes are 0 = no earnings & & 1 = $1 or break even
 # just convert to numeric
+
+# check income component variable special codes
+  # from incwage
+  which(facs$incearn == 999998)
+  which(facs$incearn == 999999)
+  # none
+  
+  # from incbus
+  which(facs$incearn == -09995)
+  which(facs$incearn == 999999)
+  # none
+  
+  # from incfarm: same codes as incbus: none
+  
+# just convert to numeric
+  
+  
+  
 
 summary(facs$empstat)
 # 1768053 missing. many prob < 16, institutionalized, etc
@@ -161,7 +184,90 @@ summary(facs$hcovpub)
 
 
 
-dsfsfd
 
 
-# RECODES ====
+# RECODE & REPLACE ====
+
+recode <- data %>% 
+  mutate(
+    # plain numeric state (& county if possible) FIPS
+    statefip = as.numeric(statefip),
+    countyfip = as.numeric(countyfip),
+    # factor (string) state names
+    state = lbl_clean(state) %>% as_factor(),
+    # convert metro to 3-part ubranicity
+    urban = lbl_clean(metro) %>% as_factor() %>% 
+      fct_recode(
+        rural = "Metropolitan status indeterminable (mixed)",
+        rural = "Not in metropolitan area",
+        urban = "In metropolitan area: In central/principal city",
+        suburban = "In metropolitan area: Not in central/principal city",
+        suburban = "In metropolitan area: Central/principal city status indeterminable (mixed)"
+      ),
+    # 3-part group quarters/institutionalized status
+    inst = lbl_clean(gq) %>% as_factor() %>% 
+      fct_recode(
+        inst = "Group quarters--Institutions",
+        ogq = "Other group quarters",
+        hh = "Households under 1970 definition",
+        hh = "Additional households under 1990 definition",
+        hh = "Additional households under 2000 definition"
+      ),
+    # simple numeric age
+    age = as.numeric(age),
+    # simple binary factor sex, converting to lowercase
+    sex = lbl_clean(sex) %>% as_factor() %>% 
+      fct_recode(
+        male = "Male",
+        female = "Female"
+      ),
+    # race excluding hispanic
+    race = lbl_clean(race) %>% as_factor() %>% 
+      fct_recode(
+        white = "White",
+        black = "Black/African American/Negro",
+        aian = "American Indian or Alaska Native",
+        aapi = "Chinese",
+        aapi = "Japanese",
+        aapi = "Other Asian or Pacific Islander",
+        multi = "Two major races",
+        multi = "Three or more major races",
+        other = "Other race, nec"
+      ),
+    # hispanic ethnicity binary status
+    hispan = lbl_clean(hispan) %>% as_factor() %>% 
+      fct_recode(
+        y = "Mexican",
+        y = "Puerto Rican",
+        y = "Cuban",
+        y = "Other",
+        n = "Not Hispanic"
+      ),
+    # replace hispanic ethnicity in primary race variable (perserving original)
+    race2 =
+      if_else(
+        hispan == "y",
+        "hisp",
+        as.character(race)
+      ) %>% 
+      as_factor(),
+    # binary school enrollemnt status
+    # "N/A" imputed as not enrolled from above
+    enroll = lbl_clean(school) %>% as_factor() %>% 
+      fct_recode(
+        y = "Yes, in school",
+        n = "No, not in school",
+        n = "N/A"
+      )
+  )
+
+
+
+View(recode[sample(1:nrow(recode), 10),])
+
+
+kjljasdflij
+
+
+
+
