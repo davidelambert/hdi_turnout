@@ -1,17 +1,16 @@
 # SETUP & IMPORT ====
 
-# deatch all non-base packages
+# detach all non-base packages
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
        detach, character.only=TRUE, unload=TRUE)
 
 library(haven)
 library(ipumsr)
-library(vtable)
 library(tidyverse)
 
 
 # import & back up
-ddi <- read_ipums_ddi("sources/ipums/usa_00013.xml")
+ddi <- read_ipums_ddi("sources/ipums/usa_00014.xml")
 data <- read_ipums_micro(ddi)
 data_bu <- data
 
@@ -30,7 +29,7 @@ data <- data %>%
     year, serial, statefip, countyfip, state, metro,
     hhwt, pernum, perwt, gq, gqtype,
     age, sex, race, hispan, citizen, school, educd, 
-    incearn, empstat, hcovany, hcovpub
+    incearn, inctot, empstat, hcovany, hcovpub
   )
 
 View(data[sample(1:nrow(data) , 10, replace = F), ])
@@ -41,8 +40,8 @@ View(data[sample(1:nrow(data) , 10, replace = F), ])
 
 facs <- data %>% 
   mutate(
-    statefip = as.numeric(statefip),
-    countyfip = as.numeric(countyfip),
+    statefip = as.integer(statefip),
+    countyfip = as.integer(countyfip),
     state = lbl_clean(state) %>% as_factor(),
     metro = lbl_clean(metro) %>% as_factor(),
     gq = lbl_clean(gq) %>% as_factor(),
@@ -55,6 +54,7 @@ facs <- data %>%
     school = lbl_clean(school) %>% as_factor(),
     educd = lbl_clean(educd) %>% as_factor(),
     incearn = lbl_clean(incearn) %>% as_factor(),
+    inctot = lbl_clean(inctot) %>% as_factor(),
     empstat = lbl_clean(empstat) %>% as_factor(),
     hcovany = lbl_clean(hcovany) %>% as_factor(),
     hcovpub = lbl_clean(hcovpub) %>% as_factor()
@@ -75,7 +75,7 @@ summary(facs$gqtype)
 # code either as binary for institutional, exlude from vep
 
 summary(facs$age)
-# one coded category @ 90, but prob means 90 -- use as numeric
+# one coded category @ 90, but prob means 90 -- use as integer
 
 summary(facs$sex)
 # no missings
@@ -94,13 +94,13 @@ summary(facs$citizen)
 summary(facs$school)
 # 299790 total missing, filter for school age & not institutionalized
 facs %>%
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(age >= 3 & age <= 24, gq != "Group quarters--Institutions") %>% 
   select(school) %>%
   summary.factor()
 # still missing 102245 total in the "school age" 3-24 range for HDI calculation
 facs %>%
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(age >= 4 & age <= 24, gq != "Group quarters--Institutions") %>% 
   select(school) %>%
   summary.factor()
@@ -111,7 +111,7 @@ facs %>%
 summary(facs$educd)
 # same 299970 missing as school
 facs %>%
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(age >= 25) %>% 
   select(educd) %>% 
   summary.factor()
@@ -126,39 +126,59 @@ vgrad <- levels(facs$educd)[23:25]
 
 
 
-summary.factor(facs$incearn)
-levels(facs$incearn)
-# only special codes are 0 = no earnings & & 1 = $1 or break even
-# just convert to numeric
 
-# check income component variable special codes
-  # from incwage
-  which(facs$incearn == 999998)
-  which(facs$incearn == 999999)
-  # none
-  
-  # from incbus
-  which(facs$incearn == -09995)
-  which(facs$incearn == 999999)
-  # none
-  
-  # from incfarm: same codes as incbus: none
-  
-# just convert to numeric
-  
-  
+# check TOTAL income special codes:
+# 0 = no earnings & & 1 = $1 or break even
+length(which(facs$incearn == "No earnings"))  # 4477222
+length(which(facs$incearn == 
+               "$1 or break even (2000, 2005-2007 ACS and PRCS)"))  # 914
+sum(which(is.na(facs$incearn)))
+# since these are 0 & 1 (& 1's are few), can just convert to numeric
+
+
+# check TOTAL income special codes:
+# -009995 = -$9,900 (1980)
+# -000001 = Net loss (1950)
+# 0000000 = None
+# 0000001 = $1 or break even (2000, 2005-onward ACS and PRCS)
+# 9999999 = N/A
+
+length(which(facs$inctot == "-$9,900 (1980)")) # none
+length(which(facs$inctot == "Net loss (1950)")) # 25: INVESTIGATE
+length(which(facs$inctot == "None"))# 956629
+length(which(facs$inctot == 
+               "$1 or break even (2000, 2005-onward ACS and PRCS)")) # 1429
+length(which(facs$inctot == "N/A")) # 1646447: INVESTIGATE
+
+
+facs %>% 
+  filter(inctot == "Net loss (1950)") %>% 
+  View()
+# all had -1 in incearn, which is the numeric for this code
+# convert to numeric
+
+facs %>% 
+  mutate(age = as.integer(age)) %>% 
+  filter(
+    inctot == "N/A",
+    age < 16
+  ) %>% 
+  nrow()
+# all N/A's are under 16 -> recode to proper NA
+# (< 16 will be excluded in median calculations anyway)
+
   
 
 summary(facs$empstat)
 # 1768053 missing. many prob < 16, institutionalized, etc
 facs %>% 
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(age >= 16, gq != "Group quarters--Institutions") %>% 
   select(empstat) %>% 
   summary()
 # 119855 missing, check bu school status
 facs %>% 
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(
     age >= 16,
     gq != "Group quarters--Institutions",
@@ -168,7 +188,7 @@ facs %>%
   summary()
 # 2342 missing, check possible retirees, other group quarters (group homes?)
 facs %>% 
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(
     age >= 16,
     age <= 65,
@@ -180,7 +200,7 @@ facs %>%
   summary()
 # 2334 missing. expand age range to 18-70
 facs %>% 
-  mutate(age = as.numeric(age)) %>% 
+  mutate(age = as.integer(age)) %>% 
   filter(
     age >= 18,
     age <= 70,
@@ -217,30 +237,36 @@ summary(facs$hcovpub)
 recode <- data %>% 
   mutate(
     # plain numeric state (& county if possible) FIPS
-    statefip = as.numeric(statefip),
-    countyfip = as.numeric(countyfip),
+    statefip = as.integer(statefip),
+    countyfip = as.integer(countyfip),
     # factor (string) state names
     state = lbl_clean(state) %>% as_factor(),
     # convert metro to 3-part ubranicity
     urban = lbl_clean(metro) %>% as_factor() %>% 
-      fct_recode(
-        rural = "Metropolitan status indeterminable (mixed)",
-        rural = "Not in metropolitan area",
-        urban = "In metropolitan area: In central/principal city",
-        suburban = "In metropolitan area: Not in central/principal city",
-        suburban = "In metropolitan area: Central/principal city status indeterminable (mixed)"
+      fct_collapse(
+        rural = c(
+          "Metropolitan status indeterminable (mixed)",
+          "Not in metropolitan area"
+        ),
+        suburban = c(
+          "In metropolitan area: Not in central/principal city",
+          "In metropolitan area: Central/principal city status indeterminable (mixed)"
+        ),
+        urban = "In metropolitan area: In central/principal city"
       ),
     # 3-part group quarters/institutionalized status
     inst = lbl_clean(gq) %>% as_factor() %>% 
-      fct_recode(
+      fct_collapse(
         inst = "Group quarters--Institutions",
         ogq = "Other group quarters",
-        hh = "Households under 1970 definition",
-        hh = "Additional households under 1990 definition",
-        hh = "Additional households under 2000 definition"
+        hh = c(
+          "Households under 1970 definition",
+          "Additional households under 1990 definition",
+          "Additional households under 2000 definition"
+        )
       ),
     # simple numeric age
-    age = as.numeric(age),
+    age = as.integer(age),
     # simple binary factor sex, converting to lowercase
     sex = lbl_clean(sex) %>% as_factor() %>% 
       fct_recode(
@@ -249,41 +275,32 @@ recode <- data %>%
       ),
     # race excluding hispanic
     race = lbl_clean(race) %>% as_factor() %>% 
-      fct_recode(
+      fct_collapse(
         white = "White",
         black = "Black/African American/Negro",
         aian = "American Indian or Alaska Native",
-        aapi = "Chinese",
-        aapi = "Japanese",
-        aapi = "Other Asian or Pacific Islander",
-        multi = "Two major races",
-        multi = "Three or more major races",
+        aapi = c( "Chinese", "Japanese", "Other Asian or Pacific Islander" ),
+        multi = c( "Two major races", "Three or more major races" ),
         other = "Other race, nec"
       ),
     # hispanic ethnicity binary status
     hispan = lbl_clean(hispan) %>% as_factor() %>% 
-      fct_recode(
-        y = "Mexican",
-        y = "Puerto Rican",
-        y = "Cuban",
-        y = "Other",
+      fct_collapse(
+        y = c( "Mexican", "Puerto Rican", "Cuban", "Other" ),
         n = "Not Hispanic"
       ),
     # replace hispanic ethnicity in primary race variable (perserving original)
     race2 =
       if_else(
-        hispan == "y",
-        "hisp",
-        as.character(race)
+        hispan == "y", "hisp", as.character(race)
       ) %>% 
       as_factor(),
     # binary school enrollemnt status
     # "N/A" imputed as not enrolled from above
     enroll = lbl_clean(school) %>% as_factor() %>% 
-      fct_recode(
+      fct_collapse(
         y = "Yes, in school",
-        n = "No, not in school",
-        n = "N/A"
+        n = c( "No, not in school", "N/A" )
       ),
     # 4-way attainment, from vectors coded in "INVESTIGATE FACTORS" section 
     attain = lbl_clean(educd) %>% as_factor() %>% 
@@ -294,7 +311,13 @@ recode <- data %>%
         grad = vgrad
       ),
     # basic numeric earnings
-    earn = as.numeric(incearn),
+    earn = as.integer(incearn),
+    # numeric total income, converting
+    # labelled "N/A" (9999999) to logical NA
+    income = 
+      if_else(
+        inctot == 9999999, NA_integer_, as.integer(inctot)
+      ),
     # employment status, with N/A -> nilf, from investigatioon above
     emp = lbl_clean(empstat) %>% as_factor() %>% 
       fct_collapse(
@@ -316,7 +339,11 @@ recode <- data %>%
           "private"
         )
       ) %>% as_factor()
-  )
+  ) %>% 
+  # select & order appropriately
+  select(year, serial, statefip, countyfip, state, hhwt, pernum, perwt,
+         age, sex, race, hispan, race2, enroll, attain, earn, income,
+         emp, hcov, citizen, urban)
 
 
 
