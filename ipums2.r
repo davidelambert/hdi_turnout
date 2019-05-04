@@ -341,13 +341,42 @@ recode <- data %>%
       ) %>% as_factor()
   ) %>% 
   # select & order appropriately
-  select(year, serial, statefip, countyfip, state, hhwt, pernum, perwt,
+  select(state, year, serial, statefip, countyfip, hhwt, pernum, perwt,
          age, sex, race, hispan, race2, enroll, attain, earn, income,
          emp, hcov, citizen, urban)
 
 
 
 View(recode[sample(1:nrow(recode), 10),])
+
+
+
+
+
+# STATE & YEAR SUMMARIES ====
+
+state <- recode %>% 
+  zap_ipums_attributes() %>% 
+  group_by(year, state) %>% 
+  mutate(
+    poptotal = sum(perwt),
+    popu18 = sum(perwt[age < 18]),
+    pop25o = sum(perwt[age >= 25]),
+    pop324 = sum(perwt[age >= 3 & age <= 24]),
+    pop60o = sum(perwt[age >= 60])
+  ) %>% 
+  summarise(
+    statefip = mean(statefip),
+    poptotal = mean(poptotal),
+    popu18 = mean(popu18),
+    pop25o = mean(pop25o),
+    pop324 = mean(pop324),
+    pop60o = mean(pop60o)
+  ) %>% 
+  arrange(state, year)
+
+
+
 
 
 kjljasdflij
