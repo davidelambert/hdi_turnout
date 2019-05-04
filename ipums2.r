@@ -295,6 +295,11 @@ recode <- data %>%
         hispan == "y", "hisp", as.character(race)
       ) %>% 
       as_factor(),
+    # binary noncitizen status
+    noncit = 
+      if_else(
+        citizen == "Not a citizen", T, F
+      ),
     # binary school enrollemnt status
     # "N/A" imputed as not enrolled from above
     enroll = lbl_clean(school) %>% as_factor() %>% 
@@ -343,7 +348,7 @@ recode <- data %>%
   # select & order appropriately
   select(state, year, serial, statefip, countyfip, hhwt, pernum, perwt,
          age, sex, race, hispan, race2, enroll, attain, earn, income,
-         emp, hcov, citizen, urban)
+         emp, hcov, inst, noncit, urban)
 
 
 
@@ -363,7 +368,26 @@ state <- recode %>%
     popu18 = sum(perwt[age < 18]),
     pop25o = sum(perwt[age >= 25]),
     pop324 = sum(perwt[age >= 3 & age <= 24]),
-    pop60o = sum(perwt[age >= 60])
+    pop60o = sum(perwt[age >= 60]),
+    popnc = sum(perwt[noncit == T]),
+    popnc18o = sum(perwt[noncit == F & age >= 18]),
+    popinst = sum(perwt[inst == "inst"]),
+    popogq = sum(perwt[inst == "ogq"]),
+    malepop = sum(perwt[sex == "male"]),
+    femalepop = sum(perwt[sex == "female"]),
+    whitepop = sum(perwt[race2 == "white"]),
+    blackpop = sum(perwt[race2 == "black"]),
+    hisppop = sum(perwt[race2 == "hisp"]),
+    aapipop = sum(perwt[race2 == "aapi"]),
+    aianpop = sum(perwt[race2 == "aian"]),
+    multipop = sum(perwt[race2 == "multi"]),
+    otherpop = sum(perwt[race == "other"]),
+    enroll = sum(perwt[enroll == "y" & age >= 3 & age <= 24]),
+    nohs = sum(perwt[attain == "nohs"]),
+    hsplus = sum(perwt[attain == "hsplus"]),
+    bacc = sum(perwt[attain == "bacc"]),
+    grad = sum(perwt[attain == "grad"]),
+    
   ) %>% 
   summarise(
     statefip = mean(statefip),
