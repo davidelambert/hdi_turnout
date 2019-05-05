@@ -542,9 +542,165 @@ test <- state %>%
   left_join(income, by = c("state", "year"))
 
 
+
+
+# COUNTY FILTERING ====
+
+# check for balance of counties per year
+recode %>% 
+  filter(countyfip != 0, year == 2008) %>% 
+  nrow() # 1688201
+recode %>% 
+  filter(countyfip != 0, year == 2012) %>% 
+  nrow() # 1861230
+recode %>% 
+  filter(countyfip != 0, year == 2016) %>% 
+  nrow() # 1916271
+
+# would yield unbalanced panels, prob due to counties increasing population
+# to greater than 65,000 Census Bureau threshold.
+
+
+# add full 5-digit fips to recode
+recode <- recode %>% 
+  mutate(
+    statefip = as.character(statefip),
+    statefip = str_pad(statefip, 2, pad = "0"),
+    countyfip = as.character(countyfip),
+    countyfip = str_pad(countyfip, 3, pad = "0"),
+    fips = paste0(statefip, countyfip)
+  )
+recode <- recode[, c(1:5,23,6:22)]
+
+View(recode[sample(1:nrow(recode), 10),])
+
+
+# create vector of identifiable counties from each year
+keep08 <- recode %>% 
+  filter(countyfip != "000", year == 2008) %>% 
+  select(fips)
+keep08 <- unique(keep08$fips)
+keep12 <- recode %>% 
+  filter(countyfip != "000", year == 2012) %>% 
+  select(fips)
+keep12 <- unique(keep12$fips)
+keep16 <- recode %>% 
+  filter(countyfip != "000", year == 2016) %>% 
+  select(fips)
+keep16 <- unique(keep16$fips)
+
+# get only those that appear in every year
+keepers <- intersect(keep08, keep12) # cuts down to 331 counties
+keepers <- intersect(keepers, keep16) # doesn't cause any extra loss!
+
+
+# select only those counties for 2012 & 2016
+counties <- recode %>% 
+  filter(fips %in% keepers)
+
+
+
+# COUNTY SUMMMARIES ====
+
+timestart <- proc.time()
+
+county <- recode %>% 
+  zap_ipums_attributes() %>% 
+  filter(fips %in% keepers) %>% 
+  group_by(year, state, fips) %>% 
+  mutate(
+    # population & age
+    poptotal = sum(perwt),
+    pop16o = sum(perwt[age >= 16]),
+    popu18 = sum(perwt[age < 18]),
+    pop25o = sum(perwt[age >= 25]),
+    pop324 = sum(perwt[age >= 3 & age <= 24]),
+    pop60o = sum(perwt[age >= 60]),
+    popnc = sum(perwt[noncit == "y"]),
+    popnc18o = sum(perwt[noncit == "y" & age >= 18]),
+    #  quarters type
+    pophh = sum(perwt[inst == "hh"]),
+    popinst = sum(perwt[inst == "inst"]),
+    popogq = sum(perwt[inst == "ogq"]),
+    # metro
+    popmetro = sum(perwt[metro == "y"]),
+    # sex
+    malepop = sum(perwt[sex == "male"]),
+    femalepop = sum(perwt[sex == "female"]),
+    # race/ethnicity
+    whitepop = sum(perwt[race2 == "white"]),
+    blackpop = sum(perwt[race2 == "black"]),
+    hisppop = sum(perwt[race2 == "hisp"]),
+    aapipop = sum(perwt[race2 == "aapi"]),
+    aianpop = sum(perwt[race2 == "aian"]),
+    multipop = sum(perwt[race2 == "multi"]),
+    otherpop = sum(perwt[race == "other"]),
+    # education
+    enroll = sum(perwt[enroll == "y" & age >= 3 & age <= 24]),
+    nohs = sum(perwt[attain == "nohs"]),
+    hsplus = sum(perwt[attain == "hsplus"]),
+    bacc = sum(perwt[attain == "bacc"]),
+    grad = sum(perwt[attain == "grad"]),
+    # employment
+    empop = sum(perwt[employ == "e"]),
+    unempop = sum(perwt[employ == "u"]),
+    cnoninst = sum(perwt[age >= 16 & inst == "hh"]),
+    # health coverage
+    hcnone = sum(perwt[hcov == "none"]),
+    hcpub = sum(perwt[hcov == "public"]),
+    hcpvt = sum(perwt[hcov == "private"])
+  ) %>% 
+  summarise(
+    poptotal = mean(poptotal),
+    pop16o = mean(pop16o),
+    popu18 = mean(popu18),
+    pop25o = mean(pop25o),
+    pop324 = mean(pop324),
+    pop60o = mean(pop60o),
+    popnc = mean(popnc),
+    popnc18o = mean(popnc18o),
+    pophh = mean(pophh),
+    popinst = mean(popinst),
+    popogq = mean(popogq),
+    popmetro = mean(popmetro),
+    malepop = mean(malepop),
+    femalepop = mean(femalepop),
+    whitepop = mean(whitepop),
+    blackpop = mean(blackpop),
+    hisppop = mean(hisppop),
+    aapipop = mean(aapipop),
+    aianpop = mean(aianpop),
+    multipop = mean(multipop),
+    otherpop = mean(otherpop),
+    enroll = mean(enroll),
+    nohs = mean(nohs),
+    hsplus = mean(hsplus),
+    bacc = mean(bacc),
+    grad = mean(grad),
+    empop = mean(empop),
+    unempop = mean(unempop),
+    cnoninst = mean(cnoninst),
+    hcnone = mean(hcnone),
+    hcpub = mean(hcpub),
+    hcpvt = mean(hcpvt)
+  ) %>% 
+  arrange(state, year, fips)
+
+
+timeend <- proc.time() - timestart
+timeend[3]
+timeend[3] / 60
+# process takes 526s ot 8.76 minutes
+
+# check for balance:
+county %>% filter(year == 2008) %>% nrow()
+county %>% filter(year == 2012) %>% nrow()
+county %>% filter(year == 2016) %>% nrow()
+# all good! 331 total counties
+
+
+
 kjljasdflij
-
-
 
 
 
