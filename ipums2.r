@@ -7,6 +7,7 @@ lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
 library(haven)
 library(ipumsr)
 library(tidyverse)
+library(inspectdf)
 
 
 # import & back up
@@ -17,6 +18,8 @@ data_bu <- data
 # check out
 str(data)
 View(data[sample(1:nrow(data) , 10, replace = F), ])
+inspect_types(data)
+inspect_mem(data, show_plot = T) # 1.04 Gb
 
 
 # subsset only used variables (& rename to lowercase)
@@ -33,6 +36,7 @@ data <- data %>%
   )
 
 View(data[sample(1:nrow(data) , 10, replace = F), ])
+inspect_mem(data, show_plot = T) # 1.04 Gb
 
 
 
@@ -61,6 +65,7 @@ facs <- data %>%
   )
 
 View(facs[sample(1:nrow(facs) , 10, replace = F), ])
+inspect_mem(facs, show_plot = T) # 957.3 Mb
 
 
 
@@ -117,12 +122,7 @@ facs %>%
   summary.factor()
 # none missing for over 25s.
 
-# vectors of each category for recoding
-levels(facs$educd)
-vnohs <- levels(facs$educd)[1:16]
-vhsplus <- levels(facs$educd)[17:21]
-vbacc <- levels(facs$educd)[22]
-vgrad <- levels(facs$educd)[23:25]
+
 
 
 
@@ -234,6 +234,15 @@ summary(facs$hcovpub)
 
 # RECODE & REPLACE ====
 
+
+# vectors of each category for recoding
+levels(facs$educd)
+vnohs <- levels(facs$educd)[1:16]
+vhsplus <- levels(facs$educd)[17:21]
+vbacc <- levels(facs$educd)[22]
+vgrad <- levels(facs$educd)[23:25]
+
+# main recoding
 recode <- data %>% 
   mutate(
     # plain numeric state (& county if possible) FIPS
@@ -354,6 +363,7 @@ recode <- data %>%
 
 
 View(recode[sample(1:nrow(recode), 10),])
+inspect_mem(recode, show_plot = T) # 919.46 Mb
 
 
 
@@ -443,8 +453,93 @@ state <- recode %>%
   ) %>% 
   arrange(state, year)
 
+View(state)
+inspect_mem(state, show_plot = T) # 51.48 Kb
 
 
+
+
+# MEDIAN & PC EARNINGS & INCOME ====
+
+# CPI Oct-Oct inflators, from BLS website
+infl08 <- 1.1162
+infl12 <- 1.045
+
+
+# median & per-capita earnings
+earnings <- recode %>% 
+  zap_ipums_attributes() %>% 
+  group_by(state, year) %>% 
+  filter(age >= 16, earn > 1) %>% 
+  mutate(
+    earnmed = median(rep(earn, times = perwt), na.rm = T),
+    earnmed = 
+      if_else(
+        year == 2008,
+        earnmed * infl08,
+        if_else(
+          year == 2012,
+          earnmed * infl12,
+          earnmed
+        )
+      ),
+    earnpc = sum(rep(earn, times = perwt), na.rm = T) / sum(perwt),
+    earnpc = 
+      if_else(
+        year == 2008,
+        earnpc * infl08,
+        if_else(
+          year == 2012,
+          earnpc * infl12,
+          earnpc
+        )
+      )
+  ) %>% 
+  summarise(
+    earnmed = mean(earnmed),
+    earnpc = mean(earnpc)
+  )
+
+
+
+# median & per-capita income
+income <- recode %>% 
+  zap_ipums_attributes() %>% 
+  group_by(state, year) %>% 
+  filter(age >= 16, income > 1) %>% 
+  mutate(
+    incmed = median(rep(income, times = perwt), na.rm = T),
+    incmed = 
+      if_else(
+        year == 2008,
+        incmed * infl08,
+        if_else(
+          year == 2012,
+          incmed * infl12,
+          incmed
+        )
+      ),
+    incpc = sum(rep(income, times = perwt), na.rm = T) / sum(perwt),
+    incpc = 
+      if_else(
+        year == 2008,
+        incpc * infl08,
+        if_else(
+          year == 2012,
+          incpc * infl12,
+          incpc
+        )
+      )
+  ) %>% 
+  summarise(
+    incmed = mean(incmed),
+    incpc = mean(incpc)
+  )
+
+
+test <- state %>% 
+  left_join(earnings, by = c("state", "year")) %>% 
+  left_join(income, by = c("state", "year"))
 
 
 kjljasdflij
