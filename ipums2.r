@@ -371,6 +371,7 @@ inspect_mem(recode, show_plot = T) # 919.46 Mb
 
 # STATE & YEAR SUMMARIES ====
 
+timestart <- proc.time()
 state <- recode %>% 
   zap_ipums_attributes() %>% 
   group_by(year, state) %>% 
@@ -452,6 +453,9 @@ state <- recode %>%
     hcpvt = mean(hcpvt)
   ) %>% 
   arrange(state, year)
+
+timeend <- proc.time()
+timeend # 735s, 12.26 min
 
 View(state)
 inspect_mem(state, show_plot = T) # 51.48 Kb
@@ -786,6 +790,8 @@ county <- county %>%
 
 
 # COUNTY NAME MATCH ====
+library(blscrapeR)
+
 fips <- county_fips %>% 
   mutate(fips = paste0(fips_state, fips_county)) %>% 
   filter(fips %in% keepers) %>% 
@@ -796,7 +802,21 @@ county <- county[, c(1:2,40,3:39)]
 
 
 
-kjljasdflij
+# EXPORT ====
 
+#clean up
+rm(list = setdiff(ls(), c("county", "state")))
+
+# save csvs:
+write_csv(county, "ipums2county.csv")
+write_csv(state, "ipums2state.csv")
+
+# save environment
+save(county, state, file = "ipums2out.Rdata")
+
+
+
+
+kjljasdflij
 
 
