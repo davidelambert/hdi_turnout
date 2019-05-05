@@ -786,6 +786,13 @@ county <- county %>%
 
 
 # COUNTY NAME MATCH ====
+fips <- county_fips %>% 
+  mutate(fips = paste0(fips_state, fips_county)) %>% 
+  filter(fips %in% keepers) %>% 
+  select(fips, county)
+
+county <- left_join(county, fips, by = "fips")
+county <- county[, c(1:2,40,3:39)]
 
 
 
