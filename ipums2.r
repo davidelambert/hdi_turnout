@@ -242,17 +242,17 @@ recode <- data %>%
     # factor (string) state names
     state = lbl_clean(state) %>% as_factor(),
     # convert metro to 3-part ubranicity
-    urban = lbl_clean(metro) %>% as_factor() %>% 
+    metro = lbl_clean(metro) %>% as_factor() %>% 
       fct_collapse(
-        rural = c(
+        n = c(
           "Metropolitan status indeterminable (mixed)",
           "Not in metropolitan area"
         ),
-        suburban = c(
-          "In metropolitan area: Not in central/principal city",
-          "In metropolitan area: Central/principal city status indeterminable (mixed)"
-        ),
-        urban = "In metropolitan area: In central/principal city"
+        y = c(
+  "In metropolitan area: Not in central/principal city",
+  "In metropolitan area: Central/principal city status indeterminable (mixed)",
+  "In metropolitan area: In central/principal city"
+        ) 
       ),
     # 3-part group quarters/institutionalized status
     inst = lbl_clean(gq) %>% as_factor() %>% 
@@ -296,9 +296,10 @@ recode <- data %>%
       ) %>% 
       as_factor(),
     # binary noncitizen status
-    noncit = 
-      if_else(
-        citizen == "Not a citizen", T, F
+    noncit = lbl_clean(citizen) %>% as_factor() %>% 
+      fct_collapse(
+        y = "Not a citizen",
+        n = c("N/A", "Born abroad of American parents", "Naturalized citizen")
       ),
     # binary school enrollemnt status
     # "N/A" imputed as not enrolled from above
@@ -324,10 +325,10 @@ recode <- data %>%
         inctot == 9999999, NA_integer_, as.integer(inctot)
       ),
     # employment status, with N/A -> nilf, from investigatioon above
-    emp = lbl_clean(empstat) %>% as_factor() %>% 
+    employ = lbl_clean(empstat) %>% as_factor() %>% 
       fct_collapse(
-        emp = "Employed",
-        unemp = "Unemployed",
+        e = "Employed",
+        u = "Unemployed",
         nilf = c("N/A", "Not in labor force")
       ),
     # convert  health coverage variables to factors
@@ -348,7 +349,7 @@ recode <- data %>%
   # select & order appropriately
   select(state, year, serial, statefip, countyfip, hhwt, pernum, perwt,
          age, sex, race, hispan, race2, enroll, attain, earn, income,
-         emp, hcov, inst, noncit, urban)
+         employ, hcov, inst, noncit, metro)
 
 
 
@@ -364,17 +365,25 @@ state <- recode %>%
   zap_ipums_attributes() %>% 
   group_by(year, state) %>% 
   mutate(
+    # population & age
     poptotal = sum(perwt),
+    pop16o = sum(perwt[age >= 16]),
     popu18 = sum(perwt[age < 18]),
     pop25o = sum(perwt[age >= 25]),
     pop324 = sum(perwt[age >= 3 & age <= 24]),
     pop60o = sum(perwt[age >= 60]),
-    popnc = sum(perwt[noncit == T]),
-    popnc18o = sum(perwt[noncit == F & age >= 18]),
+    popnc = sum(perwt[noncit == "y"]),
+    popnc18o = sum(perwt[noncit == "y" & age >= 18]),
+    #  quarters type
+    pophh = sum(perwt[inst == "hh"]),
     popinst = sum(perwt[inst == "inst"]),
     popogq = sum(perwt[inst == "ogq"]),
+    # metro
+    popmetro = sum(perwt[metro == "y"]),
+    # sex
     malepop = sum(perwt[sex == "male"]),
     femalepop = sum(perwt[sex == "female"]),
+    # race/ethnicity
     whitepop = sum(perwt[race2 == "white"]),
     blackpop = sum(perwt[race2 == "black"]),
     hisppop = sum(perwt[race2 == "hisp"]),
@@ -382,20 +391,55 @@ state <- recode %>%
     aianpop = sum(perwt[race2 == "aian"]),
     multipop = sum(perwt[race2 == "multi"]),
     otherpop = sum(perwt[race == "other"]),
+    # education
     enroll = sum(perwt[enroll == "y" & age >= 3 & age <= 24]),
     nohs = sum(perwt[attain == "nohs"]),
     hsplus = sum(perwt[attain == "hsplus"]),
     bacc = sum(perwt[attain == "bacc"]),
     grad = sum(perwt[attain == "grad"]),
-    
+    # employment
+    empop = sum(perwt[employ == "e"]),
+    unempop = sum(perwt[employ == "u"]),
+    cnoninst = sum(perwt[age >= 16 & inst == "hh"]),
+    # health coverage
+    hcnone = sum(perwt[hcov == "none"]),
+    hcpub = sum(perwt[hcov == "public"]),
+    hcpvt = sum(perwt[hcov == "private"])
   ) %>% 
   summarise(
     statefip = mean(statefip),
     poptotal = mean(poptotal),
+    pop16o = mean(pop16o),
     popu18 = mean(popu18),
     pop25o = mean(pop25o),
     pop324 = mean(pop324),
-    pop60o = mean(pop60o)
+    pop60o = mean(pop60o),
+    popnc = mean(popnc),
+    popnc18o = mean(popnc18o),
+    pophh = mean(pophh),
+    popinst = mean(popinst),
+    popogq = mean(popogq),
+    popmetro = mean(popmetro),
+    malepop = mean(malepop),
+    femalepop = mean(femalepop),
+    whitepop = mean(whitepop),
+    blackpop = mean(blackpop),
+    hisppop = mean(hisppop),
+    aapipop = mean(aapipop),
+    aianpop = mean(aianpop),
+    multipop = mean(multipop),
+    otherpop = mean(otherpop),
+    enroll = mean(enroll),
+    nohs = mean(nohs),
+    hsplus = mean(hsplus),
+    bacc = mean(bacc),
+    grad = mean(grad),
+    empop = mean(empop),
+    unempop = mean(unempop),
+    cnoninst = mean(cnoninst),
+    hcnone = mean(hcnone),
+    hcpub = mean(hcpub),
+    hcpvt = mean(hcpvt)
   ) %>% 
   arrange(state, year)
 
@@ -404,6 +448,7 @@ state <- recode %>%
 
 
 kjljasdflij
+
 
 
 
