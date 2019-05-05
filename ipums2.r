@@ -537,7 +537,7 @@ income <- recode %>%
   )
 
 
-test <- state %>% 
+state <- state %>% 
   left_join(earnings, by = c("state", "year")) %>% 
   left_join(income, by = c("state", "year"))
 
@@ -697,6 +697,95 @@ county %>% filter(year == 2008) %>% nrow()
 county %>% filter(year == 2012) %>% nrow()
 county %>% filter(year == 2016) %>% nrow()
 # all good! 331 total counties
+
+
+
+
+# COUNTY INCOME VARS ====
+
+# median & per-capita earnings
+timestart <- proc.time()
+
+earnings <- recode %>% 
+  zap_ipums_attributes() %>% 
+  filter(age >= 16, earn > 1, fips %in% keepers) %>% 
+  group_by(state, year, fips) %>% 
+  mutate(
+    earnmed = median(rep(earn, times = perwt), na.rm = T),
+    earnmed = 
+      if_else(
+        year == 2008,
+        earnmed * infl08,
+        if_else(
+          year == 2012,
+          earnmed * infl12,
+          earnmed
+        )
+      ),
+    earnpc = sum(rep(earn, times = perwt), na.rm = T) / sum(perwt),
+    earnpc = 
+      if_else(
+        year == 2008,
+        earnpc * infl08,
+        if_else(
+          year == 2012,
+          earnpc * infl12,
+          earnpc
+        )
+      )
+  ) %>% 
+  summarise(
+    earnmed = mean(earnmed),
+    earnpc = mean(earnpc)
+  )
+
+timeend <- proc.time() - timestart
+timeend  # 102s - don't bother on income
+
+
+# median & per-capita income
+income <- recode %>% 
+  zap_ipums_attributes() %>% 
+  filter(age >= 16, earn > 1, fips %in% keepers) %>% 
+  group_by(state, year, fips) %>% 
+  mutate(
+    incmed = median(rep(income, times = perwt), na.rm = T),
+    incmed = 
+      if_else(
+        year == 2008,
+        incmed * infl08,
+        if_else(
+          year == 2012,
+          incmed * infl12,
+          incmed
+        )
+      ),
+    incpc = sum(rep(income, times = perwt), na.rm = T) / sum(perwt),
+    incpc = 
+      if_else(
+        year == 2008,
+        incpc * infl08,
+        if_else(
+          year == 2012,
+          incpc * infl12,
+          incpc
+        )
+      )
+  ) %>% 
+  summarise(
+    incmed = mean(incmed),
+    incpc = mean(incpc)
+  )
+
+# merge
+county <- county %>% 
+  left_join(earnings, by = c("state", "fips", "year")) %>% 
+  left_join(income, by = c("state", "fips", "year"))
+
+
+
+
+# COUNTY NAME MATCH ====
 
 
 
