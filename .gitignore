@@ -8,3 +8,6 @@ nc16.Rproj
 *.pdf
 .Rproj.user
 *.png
+cntpan.csv
+cntpan_pull.csv
+ipums2_recode.Rdata
