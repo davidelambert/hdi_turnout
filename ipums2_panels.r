@@ -282,6 +282,165 @@ ctpan %>% ggplot() +
   )
 
 
+
+# INCOME INDEX ====
+
+# remember these are already converted to 2016 $s
+summary(subset(ctpan, year == 2008, select = incmed))
+summary(subset(ctpan, year == 2012, select = incmed))
+summary(subset(ctpan, year == 2016, select = incmed))
+# SSRA goalposts should be ok
+
+
+incmin <- 16009
+incmax <- 67730
+
+
+ctpan <- ctpan %>% 
+  mutate(
+    inc_index = ( (log(incmed) - log(incmin) ) / 
+                  (log(incmax) - log(incmin) ) * 10
+    )
+  )
+
+
+summary(subset(ctpan, year == 2008, select = inc_index))
+summary(subset(ctpan, year == 2012, select = inc_index))
+summary(subset(ctpan, year == 2016, select = inc_index))
+
+
+# visualize
+ctpan %>% ggplot() +
+  geom_boxplot(aes(y = inc_index)) +
+  coord_flip() +
+  facet_wrap(~year, ncol = 1) +
+  labs(title = "Income Index", y = "") +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    plot.title = element_text(hjust = .05),
+    strip.text = element_text(hjust = .05),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+
+# looks good!!
+
+
+
+# HDI ====
+
+ctpan <- ctpan %>% 
+  mutate(hdi = (health_index * ed_index * inc_index) ^ (1/3) )
+
+
+summary(subset(ctpan, year == 2008, select = hdi))
+summary(subset(ctpan, year == 2012, select = hdi))
+summary(subset(ctpan, year == 2016, select = hdi))
+
+
+# boxplots
+ctpan %>% ggplot() +
+  geom_boxplot(aes(y = hdi)) +
+  coord_flip() +
+  facet_wrap(~year, ncol = 1) +
+  labs(title = "Modified HDI", y = "") +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    plot.title = element_text(hjust = .05),
+    strip.text = element_text(hjust = .05),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+# Looks good
+
+
+# ADD POOLING FOR HDI VIZ ====
+
+# pooled mean hdi for each county
+pool <- ctpan %>% 
+  select(state, year, fips, hdi) %>% 
+  group_by(state, fips) %>% 
+  summarise_all(mean) %>%
+  mutate(year = "Pooled") %>% 
+  ungroup() %>% 
+  select(year, state, fips, hdi)
+
+
+# spot check first & last rows
+summary(subset(ctpan, fips == "01003", select = hdi))
+summary(subset(ctpan, fips == "55117", select = hdi))
+# looks good
+
+
+# subset main df
+ctsub <- ctpan %>% 
+  select(year, state, fips, hdi) %>% 
+  mutate(year = as.character(year))
+
+
+# row-bind
+pool <- pool %>% 
+  bind_rows(ctsub) %>% 
+  arrange(state, fips, year)
+
+rm(ctsub)
+
+
+
+# HDI VIZ
+
+# boxplots
+pool %>% ggplot() +
+  geom_boxplot(aes(y = hdi)) +
+  coord_flip() +
+  facet_wrap(~year, ncol = 1) +
+  labs(title = "Modified HDI", y = "") +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    plot.title = element_text(hjust = .05),
+    strip.text = element_text(hjust = .05),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+
+# generate normal distribution based on pooled distribution
+normpool <- rnorm(
+  1324,
+  mean = mean(pool$hdi[pool$year == "Pooled"]),
+  sd = sd(pool$hdi[pool$year == "Pooled"])
+)
+
+
+cols <- c("Simulated Normal" = "seagreen", "Observed Density" = "orange")
+
+# histograms
+pool %>% 
+  ggplot() +
+  geom_histogram(bins = 33, mapping = aes(x = hdi, y = ..density..),
+                 fill = "grey70", color = "white") +
+  stat_density(aes(x = hdi, color = "Observed Density"),
+               geom = "line", size = 1.2) +
+  stat_density(aes(x = normpool, color = "Simulated Normal"), 
+               geom = "line", size = 1.2) +
+  scale_color_manual(values = c("seagreen", "orange"), name = "") +
+  labs( title = "Modified HDI Distribution Density", x = "", y = "" )+
+  facet_wrap(~year) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = .05),
+    strip.text = element_text(hjust = .05),
+    legend.position = "bottom"
+    
+  )
+
+
+
 sdfg
 
 
