@@ -71,7 +71,7 @@ ctpan <- county %>%
 # so that increases relate to increases in HDI.
 
 
-# get list of included couty fips codes
+# get list of included county fips codes
 ctlist <- ctpan %>% 
   ungroup() %>% 
   filter(year == 2008) %>% 
