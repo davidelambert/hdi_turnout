@@ -122,7 +122,7 @@ summary(subset(ctpan, year == 2016, select = death))
 # 0.93 - 2.3
 
 deathmin <- 0.5
-deathmax <- 2.5
+deathmax <- 2.25
 
 ctpan <- ctpan %>% 
   mutate(
@@ -143,6 +143,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Health Index", y = "") +
+  scale_y_continuous(breaks = c(2,3,4,5,6,7,8,9)) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -272,6 +273,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Education Index", y = "") +
+  scale_y_continuous(breaks = c(2,3,4,5,6,7,8,9,10,11)) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -344,15 +346,20 @@ summary(subset(ctpan, year == 2016, select = hdi))
 ctpan %>% ggplot() +
   geom_boxplot(aes(y = hdi)) +
   coord_flip() +
-  facet_wrap(~year, ncol = 1) +
   labs(title = "Modified HDI", y = "") +
+  scale_y_continuous(
+    limits = c(2,10),
+    breaks = c(seq(2,10,1))
+  ) +
+  geom_hline(yintercept = 5) +
+  facet_wrap(~year, ncol = 1) +
   theme_minimal() +
   theme(
-    axis.text.y = element_blank(),
     plot.title = element_text(hjust = .05),
     strip.text = element_text(hjust = .05),
     panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank()
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank()
   )
 
 # Looks good
@@ -417,7 +424,6 @@ normpool <- rnorm(
 )
 
 
-cols <- c("Simulated Normal" = "seagreen", "Observed Density" = "orange")
 
 # histograms
 pool %>% 
@@ -438,6 +444,9 @@ pool %>%
     legend.position = "bottom"
     
   )
+
+
+
 
 
 
