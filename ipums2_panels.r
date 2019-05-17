@@ -6,7 +6,6 @@ lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
 
 library(haven)
 library(ipumsr)
-library(blsAPI)
 library(blscrapeR)
 library(psych)
 library(AER)
@@ -71,15 +70,11 @@ ctpan <- county %>%
 # so that increases relate to increases in HDI.
 
 
-# get list of included county fips codes
-ctlist <- ctpan %>% 
-  ungroup() %>% 
-  filter(year == 2008) %>% 
-  select(fips)
-ctlist <- unique(ctlist$fips)
+# get list of FIPS codes for the 331 counties for which we have 3 full periods
+ctlist <- unique(ctpan$fips)
 
 
-# read in data
+# read in age-adjusted mortality data & filter only the 331 county subset
 death <- 
   read_delim(
     "sources/Compressed Mortality, 1999-2016.txt", 
@@ -87,19 +82,18 @@ death <-
     skip = 1,
     col_names = c("notes", "county", "fips", "year", "yr", "deaths",
                   "population", "crude", "aadr")
-  )
-
-
-# filter only the 331 counties in the set
-death <- death %>% 
+  ) %>% 
   filter(fips %in% ctlist)
 
 
-# drop "(Unreliable)" flags, get RECIPROCAL age-adj death rate, subset to merge
+# convert chracter age-adj death rate to numeric.
+# generate reciprocal AADR, so that higher rates are numerically smaller
+# to match the "bigger is better" meaning of education & income indices
+# (also scale the reciprocal by 10,000 to make more legible)
 death <- death %>%  
   mutate(
-    aadr = gsub("[^0-9.]", "", aadr) %>% as.numeric(),
-    death = 1/aadr * 1000
+    aadr = as.numeric(aadr),
+    death = 1/aadr * 10000
   ) %>% 
   select(year, fips, death)
 
@@ -108,21 +102,24 @@ death <- death %>%
 ctpan <- ctpan %>% 
   left_join(death)
 
-
 rm(death)
+
+
+
+
+
 
 # HEALTH INDEX ====
 
 # check out max's & min's
 summary(subset(ctpan, year == 2008, select = death))
-# 0.89 - 1.91
 summary(subset(ctpan, year == 2012, select = death))
-# 0.94 - 2.05
 summary(subset(ctpan, year == 2016, select = death))
-# 0.93 - 2.3
+# overall min 8.9, overall max 23.0
+# want to set goalposts so that medians of INDEX are close-ish to 5
 
-deathmin <- 0.5
-deathmax <- 2.25
+deathmin <- 5
+deathmax <- 22
 
 ctpan <- ctpan %>% 
   mutate(
@@ -130,7 +127,7 @@ ctpan <- ctpan %>%
   )
 
 # descriptives
-# meadian are close to 5, so obv > 10
+# medians are close to 5 both pooled and in individual years
 summary(ctpan$health_index)
 summary(subset(ctpan, year == 2008, select = health_index))
 summary(subset(ctpan, year == 2012, select = health_index))
@@ -143,7 +140,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Health Index", y = "") +
-  scale_y_continuous(breaks = c(2,3,4,5,6,7,8,9)) +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -199,6 +196,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Attainment Index", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -245,6 +243,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Enrollment Index", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -273,6 +272,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Education Index", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   scale_y_continuous(breaks = c(2,3,4,5,6,7,8,9,10,11)) +
   theme_minimal() +
   theme(
@@ -283,6 +283,8 @@ ctpan %>% ggplot() +
     panel.grid.minor.y = element_blank()
   )
 
+# the medians are quite a bit higher than 5. But the overall ModHDI, espically
+# since it uses a geometric mean, will probably still be OK.
 
 
 # INCOME INDEX ====
@@ -317,6 +319,7 @@ ctpan %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Income Index", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -346,15 +349,12 @@ summary(subset(ctpan, year == 2016, select = hdi))
 ctpan %>% ggplot() +
   geom_boxplot(aes(y = hdi)) +
   coord_flip() +
-  labs(title = "Modified HDI", y = "") +
-  scale_y_continuous(
-    limits = c(2,10),
-    breaks = c(seq(2,10,1))
-  ) +
-  geom_hline(yintercept = 5) +
   facet_wrap(~year, ncol = 1) +
+  labs(title = "Modified HDI", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
+    axis.text.y = element_blank(),
     plot.title = element_text(hjust = .05),
     strip.text = element_text(hjust = .05),
     panel.grid.major.y = element_blank(),
@@ -398,7 +398,7 @@ rm(ctsub)
 
 
 
-# HDI VIZ
+# HDI VIZ ====
 
 # boxplots
 pool %>% ggplot() +
@@ -406,6 +406,7 @@ pool %>% ggplot() +
   coord_flip() +
   facet_wrap(~year, ncol = 1) +
   labs(title = "Modified HDI", y = "") +
+  geom_hline(yintercept = 5, color = "orange", size = 1.3) +
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),
@@ -448,6 +449,50 @@ pool %>%
 
 
 
+
+# AVERAGE UNEMPLOYMENT ====
+
+# Calculate average unemployment over the
+# May-Oct period preceeding each election
+
+# read in data from BLS scrape (in cps16.r)
+ur_orig <- read_csv("ur_07-16_331counties_monthly.csv")
+
+# cleaning
+ur <- ur_orig %>% 
+  # create standardized date format YYYY-MM-DD & convert to Date type
+  mutate(
+    date = 
+      paste(
+        year,
+        str_sub(period, start = 2, end = 3),
+        "01",
+        sep = "-"
+      ) %>% as.Date()
+  ) %>% 
+  # rename unemployment rate something intuitive
+  rename(urate = value) %>% 
+  # filter only the presidential years & May-Oct
+  filter(
+    year %in% c("2008", "2012", "2016"),
+    period %in% 
+      c(
+        paste0(
+          "M",
+          str_pad(
+            as.character(seq(05,10,1)),
+            2, 
+            pad = "0"
+          )
+        )
+      )
+  ) %>% 
+  # group by county & year
+  group_by(year, fips) %>% 
+  # summarise to mean 6-month unemployemnt by county by election year
+  summarize(ur6mo = mean(urate)) %>% 
+  arrange(fips, year)
+  
 
 
 sdfg
