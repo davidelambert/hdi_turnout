@@ -94,6 +94,7 @@ ur_331 <- function(x) {
       x,
       startyear = 2007,
       endyear = 2016,
+      registrationKey = Sys.getenv("BLS_KEY")
     )
 }
 
@@ -111,6 +112,7 @@ ur0716 <- bind_rows(ur_331_output) %>%
   select(fips, year, period, periodName, value, seriesID)
 
 
+length(unique(ur0716$fips))
 
 
 # write this out
@@ -148,6 +150,7 @@ ur <- function(x) {
       x,
       startyear = 2015,
       endyear = 2016,
+      Sys.getenv("BLS_KEY")
     )
 }
 
