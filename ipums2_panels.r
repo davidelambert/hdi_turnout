@@ -23,7 +23,6 @@ rm(state)
 
 # COUNTY PROPORTIONS ====
 
-
 ctpan <- county %>% 
   ungroup %>% 
   mutate(
@@ -151,7 +150,7 @@ ctpan %>% ggplot() +
   )
 
 
-# go with it!
+# go with it
 
 
 
@@ -211,6 +210,7 @@ ctpan %>% ggplot() +
 
 # ENROLLMENT INDEX ====
 
+# proportion of population ages 3-24 enrolled in any schooling
 ctpan <- ctpan %>% 
   mutate(enrollprop = enroll / pop324)
 
@@ -219,7 +219,7 @@ ctpan <- ctpan %>%
 summary(subset(ctpan, year == 2008, select = enrollprop))
 summary(subset(ctpan, year == 2012, select = enrollprop))
 summary(subset(ctpan, year == 2016, select = enrollprop))
-# 0.6-0.95 should be ok
+# SSRA goalposts of 0.6-0.95 should be ok
 
 enrollmin <- 0.6
 enrollmax <- 0.95
@@ -257,6 +257,7 @@ ctpan %>% ggplot() +
 
 # OVERALL EDUCATION INDEX ====
 
+# weighted average of education & enrollment indices
 ctpan <- ctpan %>% 
   mutate(ed_index = ((2/3) * attain_index) + ((1/3) * enroll_index))
 
@@ -369,30 +370,20 @@ ctpan %>% ggplot() +
 
 # pooled mean hdi for each county
 pool <- ctpan %>% 
-  select(state, year, fips, hdi) %>% 
-  group_by(state, fips) %>% 
-  summarise_all(mean) %>%
-  mutate(year = "Pooled") %>% 
-  ungroup() %>% 
-  select(year, state, fips, hdi)
-
-
-# spot check first & last rows
-summary(subset(ctpan, fips == "01003", select = hdi))
-summary(subset(ctpan, fips == "55117", select = hdi))
-# looks good
+  select(year, fips, hdi) %>% 
+  mutate(year = "Pooled")
 
 
 # subset main df
 ctsub <- ctpan %>% 
-  select(year, state, fips, hdi) %>% 
+  select(year, fips, hdi) %>% 
   mutate(year = as.character(year))
 
 
 # row-bind
 pool <- pool %>% 
   bind_rows(ctsub) %>% 
-  arrange(state, fips, year)
+  arrange(fips, year)
 
 rm(ctsub)
 
@@ -418,8 +409,9 @@ pool %>% ggplot() +
 
 
 # generate normal distribution based on pooled distribution
+set.seed(9832574)
 normpool <- rnorm(
-  1324,
+  1986,
   mean = mean(pool$hdi[pool$year == "Pooled"]),
   sd = sd(pool$hdi[pool$year == "Pooled"])
 )
@@ -450,7 +442,7 @@ pool %>%
 
 
 
-# AVERAGE UNEMPLOYMENT ====
+# 6mo AVG UNEMPLOYMENT ====
 
 # Calculate average unemployment over the
 # May-Oct period preceeding each election
@@ -490,11 +482,234 @@ ur <- ur_orig %>%
   # group by county & year
   group_by(year, fips) %>% 
   # summarise to mean 6-month unemployemnt by county by election year
-  summarize(ur6mo = mean(urate)) %>% 
+  # also extract October-only Urate
+  summarize(
+    ur.6mo = mean(urate),
+    ur.oct = mean(urate[period == "M10"])
+  ) %>%
+  # sort into panels
   arrange(fips, year)
+
+
+# join
+ctpan <- left_join(ctpan, ur)
   
 
 
-sdfg
+
+
+
+# 12mo Urate trends ====
+
+# get unemployment rate TREND for the 12 months
+# preceeding each presidential election
+
+# first get just Nov 2007 - Oct 2008
+ur0708 <- ur_orig %>% 
+  mutate(
+    date = 
+      paste(
+        year,
+        str_sub(period, start = 2, end = 3),
+        "01",
+        sep = "-"
+      ) %>% as.Date(),
+    period = as.numeric(date)
+  ) %>% 
+  rename(urate = value) %>% 
+  filter(date >= "2007-11-01" & date <= "2008-10-01") %>% 
+  select(fips, date, period, urate)
+
+
+# define functio to extract unemployment trend slope by county
+# x = data frame as constructed above, w/ urate & numeric date ("period")
+# y = character vector of counties
+trend <- function(x, y) {
+  x %>% 
+    # grouping keeps fips variable in output
+    group_by(fips) %>%
+    filter(fips == y) %>% 
+    # extract trend slope
+    summarize(ur.trend = summary(lm(urate ~ period, data = .))$coefficients[2])
+}
+
+# apply trend function to Nov 07 - Oct 08 data frame
+# returns a list of 331 1x2 tibbles
+trend08 <- lapply(ctlist, function(x) trend(ur0708, x))
+
+# convert list into single 331x2 tibble, add 2008 as election year
+trend08 <- bind_rows(trend08) %>% 
+  mutate(year = 2008)
+
+
+
+# repeat for nov 11 - oct 12
+ur1112 <- ur_orig %>% 
+  mutate(
+    date = 
+      paste(
+        year,
+        str_sub(period, start = 2, end = 3),
+        "01",
+        sep = "-"
+      ) %>% as.Date(),
+    period = as.numeric(date)
+  ) %>% 
+  rename(urate = value) %>% 
+  filter(date >= "2011-11-01" & date <= "2012-10-01") %>% 
+  select(fips, date, period, urate)
+
+trend12 <- lapply(ctlist, function(x) trend(ur1112, x))
+
+trend12 <- bind_rows(trend12) %>% 
+  mutate(year = 2012)
+
+
+
+
+# repeat for nov 15 - oct 16
+ur1516 <- ur_orig %>% 
+  mutate(
+    date = 
+      paste(
+        year,
+        str_sub(period, start = 2, end = 3),
+        "01",
+        sep = "-"
+      ) %>% as.Date(),
+    period = as.numeric(date)
+  ) %>% 
+  rename(urate = value) %>% 
+  filter(date >= "2015-11-01" & date <= "2016-10-01") %>% 
+  select(fips, date, period, urate)
+
+trend16 <- lapply(ctlist, function(x) trend(ur1516, x))
+
+trend16 <- bind_rows(trend16) %>% 
+  mutate(year = 2016)
+
+
+# combine all three years
+ur.trend <-
+  bind_rows(trend08, trend12, trend16) %>% 
+  select(fips, year, ur.trend) %>% 
+  arrange(fips, year)
+
+
+# join to main panel dataset
+ctpan <- left_join(ctpan, ur.trend)
+
+
+# clean up
+rm(list = c("trend08", "trend12", "trend16", "ur", "ur_orig",
+            "ur0708", "ur1112", "ur1516", "ur.trend"))
+
+
+
+
+
+
+# TURNOUT ====
+
+# get MIT county presidential turnout data
+load("sources/countypres_2000-2016.RData")
+
+
+# filter relevant years & counties
+votes <- x %>% 
+  # get fips into character type w/ leading zeros where necessary
+  rename(fips = FIPS) %>% 
+  mutate(
+    fips = 
+      as.character(fips) %>% 
+      str_pad(width = 5, side = "left", pad = "0"),
+    year = as.numeric(year)
+  ) %>% 
+  filter(
+    fips %in% ctlist,
+    year %in% c(2008, 2012, 2016),
+    party == "democrat"  # only need 1 party for total votes cast
+  ) %>% 
+  select(fips, year, totalvotes) %>% 
+  arrange(fips, year)
+
+# this loses 1 county. find out which:
+vfips <- unique(votes$fips)
+which(ctpan$fips == c(setdiff(ctlist, vfips))) %>% ctpan[.,]
+
+# of course its the ONE county in FUCKING ALASKA!!! Drop it:
+ctpan <- ctpan %>% filter(fips %in% vfips)
+
+
+# join total votes
+ctpan <- left_join(ctpan, votes)
+
+# remove annoying comment attribute on totalvotes.
+# it carries through to any other vars calculated w/ totalvotes
+attr(ctpan$totalvotes, "comment") <- NULL
+
+
+# calculate raw voting age population & estimate voting eligible population
+# by subtracting non-citizens 18+ & institutionalized (NOT "other group qtrs")
+# then calculate turnout rate for each
+ctpan <- ctpan %>% 
+  mutate(
+    vap = poptotal - popu18,
+    vep = poptotal - popu18 - popnc18o - popinst,
+    to.vap = totalvotes / vap,
+    to.vep = totalvotes / vep
+  )
+
+
+# clean up
+rm(list = c("x", "votes"))
+
+
+
+# SUBSET & ADD POOLING ====
+
+
+# write out complete dataset:
+write_csv(ctpan, "330_county_panel_08-16_complete.csv")
+
+# subset cleaned/computed variables
+sub <- ctpan %>% 
+  select(fips, year, state, county,
+         poptotal, vap, vep, to.vap, to.vep,
+         earnmed, earnpc, incmed, incpc, femaleprop,
+         whiteprop, nonwhprop, blackprop, hispprop,
+         aapiprop, aianprop, multiprop, otherprop,
+         oldprop, uninsprop, ur.6mo, ur.oct, ur.trend,
+         hsprop, baccprop, gradprop, enrollprop,
+         health_index, attain_index, enroll_index,
+         ed_index, inc_index, hdi) %>% 
+  mutate(year = as.character(year))
+
+# write out subset
+write_csv(sub, "330_county_panel_08-16_subset.csv")
+
+# repeat, but chage year to "Pooled" for all.
+pool <- ctpan %>% 
+  select(fips, year, state, county,
+         poptotal, vap, vep, to.vap, to.vep,
+         earnmed, earnpc, incmed, incpc, femaleprop,
+         whiteprop, nonwhprop, blackprop, hispprop,
+         aapiprop, aianprop, multiprop, otherprop,
+         oldprop, uninsprop, ur.6mo, ur.oct, ur.trend,
+         hsprop, baccprop, gradprop, enrollprop,
+         health_index, attain_index, enroll_index,
+         ed_index, inc_index, hdi) %>% 
+  mutate(year = "Pooled")
+
+# combine those
+subpool <- bind_rows(sub, pool) %>% arrange(fips, year)
+
+
+# write out set with pooling
+write_csv(subpool, "330_county_panel_08-16_pooling_appended.csv")
+
+
+
+
 
 

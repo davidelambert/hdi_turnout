@@ -163,3 +163,168 @@ ur16 <- left_join(ur16, ur6mo)
 
 # write out ====
 write_csv(ur16, "county_avg_urate_2016.csv")
+
+
+
+## TREND TESTS =====
+
+# import the 331-county panel Urates
+ur_orig <- read_csv("ur_07-16_331counties_monthly.csv")
+
+# get just Nov 07 - Oct 08 for testing purposes
+ur0708 <- ur_orig %>% 
+  mutate(
+    date = 
+      paste(
+        year,
+        str_sub(period, start = 2, end = 3),
+        "01",
+        sep = "-"
+      ) %>% as.Date()
+  ) %>% 
+  rename(urate = value) %>% 
+  filter(date >= "2007-11-01" & date <= "2008-10-01") %>% 
+  select(fips, date, urate)
+
+
+# get state & county names to attach
+county_fips <- blscrapeR::county_fips %>% 
+  mutate(fips = paste0(fips_state, fips_county)) %>% 
+  filter(state != "PR") %>% 
+  select(fips, state, county)
+
+
+# get state Division & Region for facetting
+states <- 
+  tibble(
+    state = state.abb,
+    state_name = state.name,
+    division = state.division,
+    region = state.region
+  )
+
+# add DC,
+states <- rbind(states,
+                c("DC", "District of Columbia", "South Atlantic", "South"))
+  
+
+# join
+ur0708 <- ur0708 %>% 
+  left_join(county_fips, by = "fips") %>% 
+  left_join(states, by = "state") %>% 
+  select(fips, date, state, state_name, county, division, region, urate) %>% 
+  arrange(fips, date)
+
+
+# get just Guilford for testing & numeric dates
+guilford <- filter(ur0708, fips == "37081") %>% 
+  mutate(period = as.numeric(date))
+
+
+
+# linear model for comparison
+guilford.ols <- lm(urate ~ period, data = guilford)
+summary(guilford.ols)
+
+# save fitted values to data frame
+guilford$ols.fit <- fitted(guilford.ols)
+# save residuals
+guilford$ols.err <- residuals(guilford.ols)
+
+# redsidual plot
+guilford %>%
+  ggplot(aes(x = date, y = ols.err)) +
+  geom_point(size = 4, color = "seagreen") +
+  geom_smooth(method = "loess", size = 1.3, color = "seagreen", se = F) +
+  geom_hline(yintercept = 0, size = 1.3, color = "orange") +
+  labs(
+    title = "Urate Residuals Plot",
+    subtitle = "Guilford County, NC",
+    x = "Month",
+    y = "Error"
+  ) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b %y"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.x = element_blank()
+  )
+# sinusoid shape indicative of correlated errors
+
+
+# Generate lagged errors
+guilford$ols.lagerr <- lag(guilford$ols.err)
+
+# auxiliary regression on lagged errors
+guilford.aux <- lm(ols.err ~ ols.lagerr, data = guilford)
+summary(guilford.aux)
+# debateable significance @ t=1.54, but fairly strong estimate @ .484
+# assume some autocorrelation
+
+
+# look at autocorrelation plot/
+acf(guilford$urate, guilford$period)
+acf(guilford$urate, guilford$period, plot = F)
+# this shows first lag is StatSig autocorrelated, so roll w/ that
+
+
+# more standardized: Durbin-Watson test
+# Ho: no autocorrelation (rho == 0)
+# Ha: autocorrelation (rho != 0)
+durbinWatsonTest(guilford.ols)
+# reject Ho / accept Ha: rho != 0
+
+
+# store the rho estimate on auxiliary regression:
+rho <- coefficients(guilford.aux)[2]
+
+
+# lag unemployment rate
+guilford$urate.lag <- lag(guilford$urate)
+# get mean urate
+urate.avg <- mean(guilford$urate)
+# get rho-transformed urate
+guilford$urate.rho <- urate.avg - rho * guilford$urate.lag
+
+# lag date (month)
+guilford$period.lag <- lag(guilford$period)
+# get rho-transformed date???
+guilford$period.rho <- guilford$period - rho * guilford$period.lag
+
+# rho-transformed (Cochrane-Corcutt) model
+guilford.rho <- lm(urate.rho ~ period.rho, data = guilford)
+summary(guilford.rho)
+summary(guilford.ols)
+
+# Packaged Cochrane-Orcutt & Prais-Winsten models
+library(orcutt)
+library(prais)
+guilford.orc <- cochrane.orcutt(guilford.ols)
+guilford.pra <- prais_winsten(urate ~ period, data = guilford)
+summary(guilford.orc)
+summary(guilford.pra)
+
+
+# dynamic (lagged dv)
+guilford.ldv <- lm(urate ~ period + urate.lag, data = guilford)
+summary(guilford.ldv)
+
+
+
+# look at them all together
+# (stargazer dones't accept the prais-winsten output)
+library(stargazer)
+
+stargazer(
+  guilford.ols, guilford.rho, guilford.orc, guilford.ldv,
+  type = "text",
+  dep.var.caption = "",
+  dep.var.labels = c("OLS", "Rho-Trans", "C-O", "Dynamic"),
+  model.names = F
+)
+
+
+
+asdfasdfgdssa
