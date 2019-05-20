@@ -4,14 +4,8 @@
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
        detach, character.only=TRUE, unload=TRUE)
 
-library(haven)
-library(ipumsr)
-library(blscrapeR)
-library(psych)
-library(AER)
-library(plm)
-library(lfe)
 library(tidyverse)
+library(plotly)
 
 # load data from ipums pulls
 load("ipums2out.Rdata")
@@ -436,7 +430,7 @@ pool %>%
     strip.text = element_text(hjust = .05),
     legend.position = "bottom"
     
-  )
+  ) 
 
 
 
@@ -521,7 +515,7 @@ ur0708 <- ur_orig %>%
   select(fips, date, period, urate)
 
 
-# define functio to extract unemployment trend slope by county
+# define function to extract unemployment trend slope by county
 # x = data frame as constructed above, w/ urate & numeric date ("period")
 # y = character vector of counties
 trend <- function(x, y) {
@@ -666,6 +660,24 @@ rm(list = c("x", "votes"))
 
 
 
+
+# GINI ====
+
+# read in calculated & canned gini from ipums2_gini.csv
+gini <- read_csv("gini.csv")
+
+# keep just the percentile-calculated gini
+gini <- gini[1:3]
+
+
+# join
+ctpan <- left_join(ctpan, gini)
+
+
+# cleanup
+rm(gini)
+
+
 # SUBSET & ADD POOLING ====
 
 
@@ -676,7 +688,7 @@ write_csv(ctpan, "330_county_panel_08-16_complete.csv")
 sub <- ctpan %>% 
   select(fips, year, state, county,
          poptotal, vap, vep, to.vap, to.vep,
-         earnmed, earnpc, incmed, incpc, femaleprop,
+         earnmed, earnpc, incmed, incpc, gini, femaleprop,
          whiteprop, nonwhprop, blackprop, hispprop,
          aapiprop, aianprop, multiprop, otherprop,
          oldprop, uninsprop, ur.6mo, ur.oct, ur.trend,
@@ -692,7 +704,7 @@ write_csv(sub, "330_county_panel_08-16_subset.csv")
 pool <- ctpan %>% 
   select(fips, year, state, county,
          poptotal, vap, vep, to.vap, to.vep,
-         earnmed, earnpc, incmed, incpc, femaleprop,
+         earnmed, earnpc, incmed, incpc, gini, femaleprop,
          whiteprop, nonwhprop, blackprop, hispprop,
          aapiprop, aianprop, multiprop, otherprop,
          oldprop, uninsprop, ur.6mo, ur.oct, ur.trend,
