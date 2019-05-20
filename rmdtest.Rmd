@@ -1,0 +1,88 @@
+---
+title: RMarkdown Viz Test
+author: David E. Lambert
+output:
+  html_document:
+    toc: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup & Import
+```{r import, message=FALSE}
+
+# deatch all non-base packages
+# lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
+#        detach, character.only=TRUE, unload=TRUE)
+
+# clear environment
+rm(list = ls())
+
+
+# some libraries we'll use
+library(GGally)
+library(plotly)
+library(RColorBrewer)
+library(tidyverse)
+
+# 330 county panel data for 2008, 2012, 2016 presidential elections
+cnty <- read_csv("330_county_panel_08-16_subset.csv")
+
+```
+
+
+
+## Plotly Scatterplot
+
+We'll plot basic OLS, quadratic, linear-log, and LOESS fits of the pooled data, along with the scatterplot. For the quadratic and linear-log fits, we first need to generate new columns because I haven't figured out how to get plotly to compute them _in situ_.
+```{r}
+cnty$hdi2 <- cnty$hdi^2
+cnty$loghdi <- log(cnty$hdi)
+```
+
+
+Let's also get a palette for for the scatterplot markers, so we can view & filter by year.
+```{r}
+plotly.colors <- brewer.pal(4, "Set2")
+```
+
+Now we plot!
+```{r plotly01}
+cnty %>% 
+  mutate(year = as_factor(year)) %>% 
+  plot_ly(data = ., x = ~hdi) %>% 
+  add_markers(
+    y = ~to.vep,
+    symbol = ~year,
+    symbols = c("circle", "x", "diamond"),
+    color = I("grey50"),
+    opacity = 0.5,
+    text = ~paste0(county, ", ", state, 
+                  "<br>HDI: ", round(hdi, 2), 
+                  "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+    hoverinfo = 'text'
+  ) %>% 
+  add_lines(
+    y = ~fitted(lm(to.vep ~ hdi)),
+    name = "OLS",
+    line = list(color = plotly.colors[1], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~fitted(lm(to.vep ~ hdi + hdi2)),
+    name = "Quadratic",
+    line = list(color = plotly.colors[2], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~fitted(lm(to.vep ~ loghdi)),
+    name = "Linear-Log",
+    line = list(color = plotly.colors[3], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~fitted(loess(to.vep ~ hdi)),
+    name = "LOESS",
+    line = list(color = plotly.colors[4], width = 4)
+  )
+```
+
