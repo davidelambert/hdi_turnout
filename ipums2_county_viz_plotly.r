@@ -1,6 +1,6 @@
 # SETUP & IMPORT ====
 
-# deatch all non-base packages
+# detach all non-base packages
 lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
        detach, character.only=TRUE, unload=TRUE)
 
@@ -12,6 +12,7 @@ rm(list = ls())
 library(GGally)
 library(plotly)
 library(RColorBrewer)
+library(reshape2)
 library(tidyverse)
 
 
@@ -20,20 +21,20 @@ pool <- read_csv("330_county_panel_08-16_pooling_appended.csv")
 
 
 
-# CORRELOGRAM ====
-
-# define a 3-point, diverging palette
-corr.colors <- brewer.pal(3, "PRGn")
-
-# Corellogram
-cnty %>% 
-  select(to.vap, to.vep, femaleprop, whiteprop, nonwhprop, blackprop,
-         hispprop, aapiprop, aianprop, multiprop, otherprop, oldprop,  
-         uninsprop, ur.6mo, ur.oct, ur.trend, gini, hdi) %>% 
-  ggcorr(low = corr.colors[1], mid = corr.colors[2], high = corr.colors[3],
-         label = TRUE, label_round = 2,
-         hjust = 0.8, layout.exp = 1)
-
+# # CORRELOGRAM ====
+# 
+# # define a 3-point, diverging palette
+# corr.colors <- brewer.pal(3, "PRGn")
+# 
+# # Corellogram
+# cnty %>% 
+#   select(to.vap, to.vep, femaleprop, whiteprop, nonwhprop, blackprop,
+#          hispprop, aapiprop, aianprop, multiprop, otherprop, oldprop,  
+#          uninsprop, ur.6mo, ur.oct, ur.trend, gini, hdi) %>% 
+#   ggcorr(low = corr.colors[1], mid = corr.colors[2], high = corr.colors[3],
+#          label = TRUE, label_round = 2,
+#          hjust = 0.8, layout.exp = 1)
+# 
 
 
 
@@ -41,42 +42,47 @@ cnty %>%
 
 # CORRELORGRAM 2 ====
 
+# subset what we want in the matrix
 corr.sub <- cnty %>% 
   select(to.vap, to.vep, femaleprop, whiteprop, nonwhprop, blackprop,
          hispprop, aapiprop, aianprop, multiprop, otherprop, oldprop,  
          uninsprop, ur.6mo, ur.oct, ur.trend, gini, hdi)
 
+# grab full, square matrix
 corr.mat <- round(cor(corr.sub), 2)
 
-corr.mat[lower.tri(corr.mat)] <- NA
+# NA's to upper triangle, will keep only lower
+corr.mat[upper.tri(corr.mat)] <- NA
 
-corr.mat <- t(corr.mat)
-
-library(reshape2)
-
+# "melt" matrix into 3col df, w/ each vairable pair & correlation
+# (also drop the upper triangle NA's)
 corr.melt <- melt(corr.mat, na.rm = TRUE)
 
+# get all 7 colors of canned palette to force darker/saturated endpoints
 corr.pal <- brewer.pal(7, "PRGn")
 
+# create the matrix
 corr.full <- corr.melt %>% 
   ggplot(aes(x = Var1, y = Var2, fill = value)) +
-  geom_tile(color = "white") +
+  geom_tile(
+    color = "white",
+    aes(text = paste0(Var1, ",<br>", Var2, "<br>r = ", value))
+  ) +
   scale_fill_gradient2(
     low = corr.pal[1], mid = corr.pal[4], high = corr.pal[7],
     midpoint = 0, limit = c(-1,1), name = "Pearson's r"
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
-  ) +
-  coord_fixed()
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    axis.text.y = element_text(vjust = -1),
+    axis.title = element_blank(),
+    panel.grid = element_blank()
+    ) 
   
 
-ggplotly(corr.full)
-
-
-hkfdshksdf
-
+# send to plotly
+ggplotly(corr.full, tooltip = "text")
 
 
 
@@ -206,10 +212,6 @@ ggplotly(hist.vep)
 # Define palette
 scatter.colors <- brewer.pal(4, "Set2")
 
-# grab squared and log transformations of HDI
-pool$hdi2 <- pool$hdi^2
-pool$loghdi <- log(pool$hdi)
-
 # base scatterplot, all models, no CI
 scatter <- 
 pool %>% 
@@ -257,56 +259,61 @@ ggplotly(scatter, tooltip = "text")
 
 
 
-# PLOTLY ====
-
-# linear fits to plot
-
-ols <- lm(to.vep ~ hdi, data = cnty)
-
-loess <- loess(to.vep ~ hdi, data = cnty, span = 50,
-               method = "loess", family = "symmetric", degree = 2)
-loess.pred <- predict(loess)
-
-cnty$hdi2 <- cnty$hdi^2
-quad <- lm(to.vep ~ hdi + hdi2, data = cnty)
-quad.pred <- predict(quad)
-
-
-# a palette
-plotly.colors <- brewer.pal(3, "Set2")
-
-cnty %>% 
-  mutate(year = as_factor(year)) %>% 
-  plot_ly(data = ., x = ~hdi) %>% 
-  add_markers(
-    y = ~to.vep,
-    color = ~year,
-    colors = plotly.colors[1:3],
-    # Hover text:
-    text = ~paste0(county, ", ", state, 
-                  "<br>HDI: ", round(hdi, 2), 
-                  "<br>Turnout: ", round(to.vep * 100, 1), "%"),
-    hoverinfo = 'text'
-  ) %>% 
-  add_lines(
-    y = fitted(ols),
-    name = "Pooled OLS",
-    line = list(color = "black")
-  ) %>% 
-  add_lines(
-    y = ~quad.pred,
-    name = "Pooled Quadratic",
-    line = list(color = "red")
-  ) %>% 
-  add_lines(
-    y = ~fitted(loess(to.vep ~ hdi)),
-    name = "Pooled LOESS",
-    line = list(color = "yellow")
-  )
-  
-
-
-
-
-sdfg
-
+# # PLOTLY ====
+# 
+# # linear fits to plot
+# 
+# ols <- lm(to.vep ~ hdi, data = cnty)
+# 
+# loess <- loess(to.vep ~ hdi, data = cnty, span = 50,
+#                method = "loess", family = "symmetric", degree = 2)
+# loess.pred <- predict(loess)
+# 
+# cnty$hdi2 <- cnty$hdi^2
+# quad <- lm(to.vep ~ hdi + hdi2, data = cnty)
+# quad.pred <- predict(quad)
+# 
+# 
+# # a palette
+# plotly.colors <- brewer.pal(3, "Set2")
+# 
+# cnty %>% 
+#   mutate(year = as_factor(year)) %>% 
+#   plot_ly(data = ., x = ~hdi) %>% 
+#   add_markers(
+#     y = ~to.vep,
+#     color = ~year,
+#     colors = plotly.colors[1:3],
+#     # Hover text:
+#     text = ~paste0(county, ", ", state, 
+#                   "<br>HDI: ", round(hdi, 2), 
+#                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+#     hoverinfo = 'text'
+#   ) %>% 
+#   add_lines(
+#     y = fitted(ols),
+#     name = "Pooled OLS",
+#     line = list(color = "black")
+#   ) %>% 
+#   add_lines(
+#     y = ~quad.pred,
+#     name = "Pooled Quadratic",
+#     line = list(color = "red")
+#   ) %>% 
+#   add_lines(
+#     y = ~fitted(loess(to.vep ~ hdi)),
+#     name = "Pooled LOESS",
+#     line = list(color = "yellow")
+#   )
+#   
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# sdfg
+# 
