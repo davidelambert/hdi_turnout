@@ -39,6 +39,47 @@ cnty %>%
 
 
 
+# CORRELORGRAM 2 ====
+
+corr.sub <- cnty %>% 
+  select(to.vap, to.vep, femaleprop, whiteprop, nonwhprop, blackprop,
+         hispprop, aapiprop, aianprop, multiprop, otherprop, oldprop,  
+         uninsprop, ur.6mo, ur.oct, ur.trend, gini, hdi)
+
+corr.mat <- round(cor(corr.sub), 2)
+
+corr.mat[lower.tri(corr.mat)] <- NA
+
+corr.mat <- t(corr.mat)
+
+library(reshape2)
+
+corr.melt <- melt(corr.mat, na.rm = TRUE)
+
+corr.pal <- brewer.pal(7, "PRGn")
+
+corr.full <- corr.melt %>% 
+  ggplot(aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = corr.pal[1], mid = corr.pal[4], high = corr.pal[7],
+    midpoint = 0, limit = c(-1,1), name = "Pearson's r"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  ) +
+  coord_fixed()
+  
+
+ggplotly(corr.full)
+
+
+hkfdshksdf
+
+
+
+
 # HISTOGRAMS ====
 
 # simualte normal distributions based on pooled distribution
