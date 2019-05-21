@@ -9,9 +9,6 @@ rm(list = ls())
 
 
 # some libraries
-library(AER)
-library(plm)
-library(lfe)
 library(GGally)
 library(plotly)
 library(RColorBrewer)
@@ -32,7 +29,7 @@ corr.colors <- brewer.pal(3, "PRGn")
 cnty %>% 
   select(to.vap, to.vep, femaleprop, whiteprop, nonwhprop, blackprop,
          hispprop, aapiprop, aianprop, multiprop, otherprop, oldprop,  
-         uninsprop, ur.6mo, ur.oct, ur.trend, hdi) %>% 
+         uninsprop, ur.6mo, ur.oct, ur.trend, gini, hdi) %>% 
   ggcorr(low = corr.colors[1], mid = corr.colors[2], high = corr.colors[3],
          label = TRUE, label_round = 2,
          hjust = 0.8, layout.exp = 1)
@@ -65,14 +62,10 @@ norm.vep <- rnorm(
   sd = sd(pool$to.vep[pool$year == "Pooled"])
 )
 
-norm.veplog <- rnorm(
-  1980,
-  mean = mean(log(pool$to.vep[pool$year == "Pooled"])),
-  sd = sd(log(pool$to.vep[pool$year == "Pooled"]))
-)
 
 # Define a palette:
-density_colors <- brewer.pal(2, "Set2")
+density_colors <- brewer.pal(3, "Set2")
+
 
 # hdi histograms
 hist.hdi <- 
@@ -106,6 +99,7 @@ ggplotly(hist.hdi)
 
 
 # LOG hdi histograms
+hist.loghdi <- 
 pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = log(hdi), y = ..density..),
@@ -128,14 +122,14 @@ pool %>%
     legend.title = element_blank()
   )
 
+ggplotly(hist.loghdi)
+
 # closer to normal
 
 
 
-
-
-
 # VEP histograms
+hist.vep <- 
 pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = to.vep, y = ..density..),
@@ -158,38 +152,10 @@ pool %>%
     legend.title = element_blank()
   )
 
+ggplotly(hist.vep)
+
 # Normal in Pooled, 2012, LEFT skewewed in 2008
 # Log distsribution will make left skew worse,
-# but may be desireable for a log-log elasticity regression...
-
-
-
-# LOG VEP histograms
-pool %>% 
-  ggplot() +
-  geom_histogram(bins = 33, mapping = aes(x = log(to.vep), y = ..density..),
-                 fill = "grey70", color = "white") +
-  stat_density(aes(x = log(to.vep), color = "Observed Density"),
-               geom = "line", size = 1.2) +
-  stat_density(aes(x = norm.veplog, color = "Simulated Normal"), 
-               geom = "line", size = 1.2) +
-  labs(
-    title = "Log Turnout (VEP) Distribution Density",
-    x = "",
-    y = "" 
-  )+
-  facet_wrap(~year) +
-  scale_color_manual(values = density_colors) +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    legend.direction = "vertical",
-    legend.title = element_blank()
-  )
-
-# OK, a little worse, but not THAT much....
-
-
 
 
 
@@ -199,6 +165,10 @@ pool %>%
 # Define palette
 scatter.colors <- brewer.pal(4, "Set2")
 
+# grab squared and log transformations of HDI
+pool$hdi2 <- pool$hdi^2
+pool$loghdi <- log(pool$hdi)
+
 # base scatterplot, all models, no CI
 scatter <- 
 pool %>% 
@@ -207,30 +177,25 @@ pool %>%
     shape = 16,
     alpha = .3,
     size = 2,
-    stroke = 0
+    stroke = 0,
+    aes(text = paste0(county, ", ", st,
+                      "<br>HDI: ", round(hdi, 2),
+                      "<br>Turnout: ", round(to.vep * 100, 1), "%"))
   ) +
   geom_smooth(
-    se = FALSE,
-    size = 1.5,
+    aes(color = "LOESS", fill = "LOESS"),
     method = "loess",
-    aes(color = "LOESS", fill = "LOESS")
   ) +
   geom_smooth(
-    se = FALSE,
-    size = 1.5,
+    aes(color = "OLS", fill = "OLS"),
     method = "lm",
-    aes(color = "OLS", fill = "OLS")
   ) +
   geom_smooth(
-    se = FALSE,
-    size = 1.5,
+    aes(color = "Linear-Log", fill = "Linear-Log"),
     method = "lm",
     formula = y ~ log(x),
-    aes(color = "Linear-Log", fill = "Linear-Log")
   ) +
   geom_smooth(
-    se = FALSE,
-    size = 1.5,
     method = "lm",
     formula = y ~ splines::bs(x, degree = 2),
     aes(color = "Quadratic", fill = "Quadratic")
@@ -246,9 +211,8 @@ pool %>%
   theme_minimal() 
 
 
-scatter.text <- paste0()
     
-ggplotly(scatter)
+ggplotly(scatter, tooltip = "text")
 
 
 

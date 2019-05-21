@@ -5,7 +5,6 @@ lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),
        detach, character.only=TRUE, unload=TRUE)
 
 library(tidyverse)
-library(plotly)
 
 # load data from ipums pulls
 load("ipums2out.Rdata")
@@ -669,24 +668,30 @@ gini <- read_csv("gini.csv")
 # keep just the percentile-calculated gini
 gini <- gini[1:3]
 
-
 # join
 ctpan <- left_join(ctpan, gini)
-
 
 # cleanup
 rm(gini)
 
 
-# SUBSET & ADD POOLING ====
+# STATE ABBREVIATIONS ====
+states <- blscrapeR::state_fips
+states <- states[1:51,2:3]
+ctpan <- ctpan %>% 
+  left_join(states) %>% 
+  rename(st = state_abb)
+ctpan <- ctpan[, c(1:2, 76, 3:75)]
 
+
+# SUBSET & ADD POOLING ====
 
 # write out complete dataset:
 write_csv(ctpan, "330_county_panel_08-16_complete.csv")
 
 # subset cleaned/computed variables
 sub <- ctpan %>% 
-  select(fips, year, state, county,
+  select(fips, year, state, st, county,
          poptotal, vap, vep, to.vap, to.vep,
          earnmed, earnpc, incmed, incpc, gini, femaleprop,
          whiteprop, nonwhprop, blackprop, hispprop,
@@ -702,7 +707,7 @@ write_csv(sub, "330_county_panel_08-16_subset.csv")
 
 # repeat, but chage year to "Pooled" for all.
 pool <- ctpan %>% 
-  select(fips, year, state, county,
+  select(fips, year, state, st, county,
          poptotal, vap, vep, to.vap, to.vep,
          earnmed, earnpc, incmed, incpc, gini, femaleprop,
          whiteprop, nonwhprop, blackprop, hispprop,
