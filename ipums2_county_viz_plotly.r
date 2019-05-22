@@ -334,12 +334,13 @@ unface.colors <- brewer.pal(5, "Set2")
 # base scatterplot, all models, no CI
 unface <- 
   cnty %>% 
+  mutate(year = as_factor(year)) %>% 
   ggplot() +
   geom_point(
     alpha = .3,
     size = 2,
     aes(
-      x = hdi, y = veppct, shape = as_factor(year),
+      x = hdi, y = veppct, shape = year,
       text = paste0(county, ", ", st,
                     "<br>HDI: ", round(hdi, 2),
                     "<br>Turnout: ", round(veppct, 1), "%")
@@ -375,7 +376,8 @@ unface <-
     aes(x = x.quad, y = y.quad, color = "Quadratic"),
     size = 1.2
   ) +
-  scale_color_manual(values = unface.colors) +
+  scale_shape_discrete(name = "") +
+  scale_color_manual(name = "", values = unface.colors) +
   labs(
     title = "Turnout (VEP) & HDI",
     x = "HDI",
@@ -384,78 +386,14 @@ unface <-
   theme_minimal() 
 
 
-
 ggplotly(unface, tooltip = "text")
 
 
+# OK, but legend looks weird
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## LOG-LOG ====
-
-# Define palette
-scatter2.colors <- brewer.pal(5, "Set2")
-
-# base scatterplot, all models, no CI
-scatter2 <- 
-pool %>% 
-  ggplot(aes(x = log(hdi), y = log(to.vep * 100))) +
-  geom_point(
-    shape = 16,
-    alpha = .3,
-    size = 2,
-    stroke = 0,
-    aes(text = paste0(county, ", ", st,
-                      "<br>HDI: ", round(hdi, 2),
-                      "<br>Turnout: ", round(to.vep * 100, 1), "%"))
-  ) +
-  geom_smooth(
-    aes(color = "LOESS", fill = "LOESS"),
-    method = "loess",
-  ) +
-  geom_smooth(
-    method = "lm",
-    aes(color = "Log-log", fill = "Log-log")
-  ) +
-  facet_wrap(~year) +
-  scale_color_manual(name = "Model", values = scatter2.colors) +
-  scale_fill_manual(name = "Model", values = scatter2.colors) +
-  labs(
-    title = "Turnout (VEP) & HDI",
-    x = "Log HDI",
-    y = "Log Turnout"
-  ) +
-  theme_minimal() 
-
-
-    
-ggplotly(scatter2, tooltip = "text")
-
-
-
-
-# # PLOTLY ====
+# # PLOTLY NATIVE ====
 # 
 # # linear fits to plot
 # 
