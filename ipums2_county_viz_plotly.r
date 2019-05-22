@@ -9,9 +9,10 @@ rm(list = ls())
 
 
 # some libraries
-library(GGally)
+# library(GGally) # only needed for old, unused correlogram
 library(plotly)
 library(RColorBrewer)
+library(viridis)
 library(reshape2)
 library(tidyverse)
 
@@ -85,6 +86,9 @@ corr.full <- corr.melt %>%
 ggplotly(corr.full, tooltip = "text")
 
 
+# clean up all corr. prefixes except the final ggplot object corr.full
+rm(list = setdiff(ls(pattern = "^corr."), "corr.full"))
+
 
 # HISTOGRAMS ====
 
@@ -109,9 +113,12 @@ norm.vep <- rnorm(
   sd = sd(pool$to.vep[pool$year == "Pooled"])
 )
 
+norm.veplog <- rnorm(
+  1980,
+  mean = mean(log(pool$to.vep[pool$year == "Pooled"])),
+  sd = sd(log(pool$to.vep[pool$year == "Pooled"]))
+)
 
-# Define a palette:
-density_colors <- brewer.pal(3, "Set2")
 
 
 # hdi histograms
@@ -130,7 +137,10 @@ pool %>%
     y = "" 
   ) +
   facet_wrap(~year) +
-  scale_color_manual(name = "Densities", values = density_colors) +
+  scale_color_manual(
+    name = "Density",
+    values = plasma(2, begin = 0, end = 0.7, alpha = 0.7)
+  ) +
   theme_minimal() +
   theme(
     legend.position = "bottom",
@@ -161,7 +171,10 @@ pool %>%
     y = "" 
   ) +
   facet_wrap(~year) +
-  scale_color_manual(name = "Densities", values = density_colors) +
+  scale_color_manual(
+    name = "Density",
+    values = plasma(2, begin = 0.1, end = 0.8, alpha = 0.7)
+  ) +
   theme_minimal() +
   theme(
     legend.position = "bottom",
@@ -191,7 +204,10 @@ pool %>%
     y = "" 
   )+
   facet_wrap(~year) +
-  scale_color_manual(name = "Densities", values = density_colors) +
+  scale_color_manual(
+    name = "Density",
+    values = plasma(2, begin = 0.2, end = 0.9, alpha = 0.7)
+  ) +
   theme_minimal() +
   theme(
     legend.position = "bottom",
@@ -202,7 +218,37 @@ pool %>%
 ggplotly(hist.vep)
 
 # Normal in Pooled, 2012, LEFT skewewed in 2008
-# Log distsribution will make left skew worse,
+# Log distsribution will make left skew worse,\
+# but could still be usefull for a log-log elasticity model
+
+
+hist.logvep <- 
+  pool %>% 
+  ggplot() +
+  geom_histogram(bins = 33, mapping = aes(x = log(to.vep), y = ..density..),
+                 fill = "grey70", color = "white") +
+  stat_density(aes(x = log(to.vep), color = "Observed Density"),
+               geom = "line", size = 1.2) +
+  stat_density(aes(x = norm.veplog, color = "Simulated Normal"), 
+               geom = "line", size = 1.2) +
+  labs(
+    title = "log(VEP) Distribution Density",
+    x = "",
+    y = "" 
+  )+
+  facet_wrap(~year) +
+  scale_color_manual(
+    name = "Density",
+    values = plasma(2, begin = 0.3, end = 1, alpha = 0.7)
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.direction = "vertical",
+    legend.title = element_blank()
+  )
+
+ggplotly(hist.logvep)
 
 
 
@@ -210,7 +256,7 @@ ggplotly(hist.vep)
 # SCATTERPLOTS ====
 
 # Define palette
-scatter.colors <- brewer.pal(4, "Set2")
+scatter.colors <- brewer.pal(5, "Set2")
 
 # base scatterplot, all models, no CI
 scatter <- 
@@ -256,6 +302,50 @@ pool %>%
 
     
 ggplotly(scatter, tooltip = "text")
+
+
+
+
+## LOG-LOG ====
+
+# Define palette
+scatter2.colors <- brewer.pal(5, "Set2")
+
+# base scatterplot, all models, no CI
+scatter2 <- 
+pool %>% 
+  ggplot(aes(x = log(hdi), y = log(to.vep * 100))) +
+  geom_point(
+    shape = 16,
+    alpha = .3,
+    size = 2,
+    stroke = 0,
+    aes(text = paste0(county, ", ", st,
+                      "<br>HDI: ", round(hdi, 2),
+                      "<br>Turnout: ", round(to.vep * 100, 1), "%"))
+  ) +
+  geom_smooth(
+    aes(color = "LOESS", fill = "LOESS"),
+    method = "loess",
+  ) +
+  geom_smooth(
+    method = "lm",
+    aes(color = "Log-log", fill = "Log-log")
+  ) +
+  facet_wrap(~year) +
+  scale_color_manual(name = "Model", values = scatter2.colors) +
+  scale_fill_manual(name = "Model", values = scatter2.colors) +
+  labs(
+    title = "Turnout (VEP) & HDI",
+    x = "Log HDI",
+    y = "Log Turnout"
+  ) +
+  theme_minimal() 
+
+
+    
+ggplotly(scatter2, tooltip = "text")
+
 
 
 
