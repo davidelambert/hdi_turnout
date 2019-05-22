@@ -261,7 +261,7 @@ scatter.colors <- brewer.pal(5, "Set2")
 # base scatterplot, all models, no CI
 scatter <- 
 pool %>% 
-  ggplot(aes(x = hdi, y = to.vep)) +
+  ggplot(aes(x = hdi, y = veppct)) +
   geom_point(
     shape = 16,
     alpha = .3,
@@ -269,7 +269,7 @@ pool %>%
     stroke = 0,
     aes(text = paste0(county, ", ", st,
                       "<br>HDI: ", round(hdi, 2),
-                      "<br>Turnout: ", round(to.vep * 100, 1), "%"))
+                      "<br>Turnout: ", round(veppct, 1), "%"))
   ) +
   geom_smooth(
     aes(color = "LOESS", fill = "LOESS"),
@@ -302,6 +302,112 @@ pool %>%
 
     
 ggplotly(scatter, tooltip = "text")
+
+
+
+
+
+
+
+# Scatter Unfacetted ====
+
+# some new computed variables
+cnty <- cnty %>% 
+  mutate(
+    hdi2 = hdi ^ 2,
+    loghdi = log(hdi),
+    veppct = to.vep * 100,
+    logvep = log(veppct)
+  )
+
+# Models 
+loess <- loess(data = cnty, veppct ~ hdi)
+lm <- lm(data = cnty, veppct ~ hdi)
+quad <- lm(data = cnty, veppct ~ hdi + hdi2)
+linlog <- lm(data = cnty, veppct ~ loghdi)
+loglog <- lm(data = cnty, logvep ~ loghdi)
+
+
+# Define palette
+unface.colors <- brewer.pal(5, "Set2")
+
+# base scatterplot, all models, no CI
+unface <- 
+  cnty %>% 
+  ggplot() +
+  geom_point(
+    alpha = .3,
+    size = 2,
+    aes(
+      x = hdi, y = veppct, shape = as_factor(year),
+      text = paste0(county, ", ", st,
+                    "<br>HDI: ", round(hdi, 2),
+                    "<br>Turnout: ", round(veppct, 1), "%")
+    )
+  ) +
+  geom_line(
+    data = data.frame(x.loess = as.vector(loess$x),
+                      y.loess = loess$fitted),
+    aes(x = x.loess, y = y.loess, color = "LOESS"),
+    size = 1.2
+  ) + 
+  geom_line(
+    data = data.frame(x.lm = lm$model$hdi,
+                      y.lm = lm$fitted.values),
+    aes(x = x.lm, y = y.lm, color = "OLS"),
+    size = 1.2
+  ) +
+  geom_line(
+    data = data.frame(x.linlog = exp(linlog$model$loghdi),
+                      y.linlog = linlog$fitted.values),
+    aes(x = x.linlog, y = y.linlog, color = "Linear-Log"),
+    size = 1.2
+  ) +
+  geom_line(
+    data = data.frame(x.loglog = exp(loglog$model$loghdi),
+                      y.loglog = exp(loglog$fitted.values)),
+    aes(x = x.loglog, y = y.loglog, color = "Log-Log"),
+        size = 1.2
+  ) +
+  geom_line(
+    data = data.frame(x.quad = quad$model$hdi,
+                      y.quad = quad$fitted.values),
+    aes(x = x.quad, y = y.quad, color = "Quadratic"),
+    size = 1.2
+  ) +
+  scale_color_manual(values = unface.colors) +
+  labs(
+    title = "Turnout (VEP) & HDI",
+    x = "HDI",
+    y = "Turnout"
+  ) +
+  theme_minimal() 
+
+
+
+ggplotly(unface, tooltip = "text")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
