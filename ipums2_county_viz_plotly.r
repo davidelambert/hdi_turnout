@@ -620,62 +620,129 @@ pp <- cnty %>%
 subplot(p08, p12, p16, pp, nrows = 2)
 
 
+# OK, but doens't LINK zooming between facets.
+# I like the initial invisibility, though.....
+# retrying with facets in GGplot, but using different data for each
+# facet & model
 
-# # PLOTLY NATIVE ====
-# 
-# # linear fits to plot
-# 
-# ols <- lm(to.vep ~ hdi, data = cnty)
-# 
-# loess <- loess(to.vep ~ hdi, data = cnty, span = 50,
-#                method = "loess", family = "symmetric", degree = 2)
-# loess.pred <- predict(loess)
-# 
-# cnty$hdi2 <- cnty$hdi^2
-# quad <- lm(to.vep ~ hdi + hdi2, data = cnty)
-# quad.pred <- predict(quad)
-# 
-# 
-# # a palette
-# plotly.colors <- brewer.pal(3, "Set2")
-# 
-# cnty %>% 
-#   mutate(year = as_factor(year)) %>% 
-#   plot_ly(data = ., x = ~hdi) %>% 
-#   add_markers(
-#     y = ~to.vep,
-#     color = ~year,
-#     colors = plotly.colors[1:3],
-#     # Hover text:
-#     text = ~paste0(county, ", ", state, 
-#                   "<br>HDI: ", round(hdi, 2), 
-#                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
-#     hoverinfo = 'text'
-#   ) %>% 
-#   add_lines(
-#     y = fitted(ols),
-#     name = "Pooled OLS",
-#     line = list(color = "black")
-#   ) %>% 
-#   add_lines(
-#     y = ~quad.pred,
-#     name = "Pooled Quadratic",
-#     line = list(color = "red")
-#   ) %>% 
-#   add_lines(
-#     y = ~fitted(loess(to.vep ~ hdi)),
-#     name = "Pooled LOESS",
-#     line = list(color = "yellow")
-#   )
-#   
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# sdfg
-# 
+
+## GG SCATTER 3 ====
+
+# additional variables
+# "year 2" added to differentiate marker shape in pooled plot
+cnty <- cnty %>% 
+  mutate(
+    year = as.character(year),
+    year2 = year,
+    hdi2 = hdi ^ 2,
+    loghdi = log(hdi),
+    veppct = to.vep * 100,
+    logvep = log(veppct)
+  )
+
+# create new pooled set to attach
+temp <- cnty %>% 
+  mutate(year = "Pooled")
+
+
+# replace pooled set with this new one
+pool <- bind_rows(cnty, temp) %>% 
+  mutate(year = as_factor(year))
+
+
+
+# Models
+  # 2008 fits
+  loess.2008 <- loess(veppct ~ hdi, data = pool, subset = (year == "2008"))
+  ols.2008 <- lm(veppct ~ hdi, data = pool, subset = (year == "2008"))
+  linlog.2008 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2008"))
+  loglog.2008 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2008"))
+  
+  # 2012 fits
+  loess.2012 <- loess(veppct ~ hdi, data = pool, subset = (year == "2012"))
+  ols.2012 <- lm(veppct ~ hdi, data = pool, subset = (year == "2012"))
+  linlog.2012 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2012"))
+  loglog.2012 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2012"))
+  
+  # 2016 fits
+  loess.2016 <- loess(veppct ~ hdi, data = pool, subset = (year == "2016"))
+  ols.2016 <- lm(veppct ~ hdi, data = pool, subset = (year == "2016"))
+  linlog.2016 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2016"))
+  loglog.2016 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2016"))
+  
+  # pooled fits
+  loess.pool <- loess(veppct ~ hdi, data = pool, subset = (year == "Pooled"))
+  ols.pool <- lm(veppct ~ hdi, data = pool, subset = (year == "Pooled"))
+  linlog.pool <- lm(veppct ~ loghdi, data = pool, subset = (year == "Pooled"))
+  loglog.pool <- lm(logvep ~ loghdi, data = pool, subset = (year == "Pooled"))
+
+
+# Define palette
+scatter.colors <- brewer.pal(5, "Set2")
+
+# Plot
+gg3 <- pool %>% 
+  ggplot() +
+  geom_point(
+    aes(
+      x = hdi, y = veppct,
+      text = paste0(county, ", ", st,
+                    "<br>HDI: ", round(hdi, 2),
+                    "<br>Turnout: ", round(veppct, 1), "%"),
+      shape = year2
+    ),
+    alpha = .3,
+    size = 1.5,
+    stroke = 0.25
+  ) +
+  
+  # LOESS FITS
+  geom_line(
+    data = data.frame(x.loess.2008 = as.vector(loess.2008$x),
+                      y.loess.2008= loess.2008$fitted,
+                      year = "2008"),
+    aes(x = x.loess.2008, y = y.loess.2008, color = "LOESS")
+  ) + 
+  geom_line(
+    data = data.frame(x.loess.2012 = as.vector(loess.2012$x),
+                      y.loess.2012= loess.2012$fitted,
+                      year = "2012"),
+    aes(x = x.loess.2012, y = y.loess.2012, color = "LOESS")
+  ) + 
+  geom_line(
+    data = data.frame(x.loess.2016 = as.vector(loess.2016$x),
+                      y.loess.2016= loess.2016$fitted,
+                      year = "2016"),
+    aes(x = x.loess.2016, y = y.loess.2016, color = "LOESS")
+  ) + 
+  geom_line(
+    data = data.frame(x.loess.pool = as.vector(loess.pool$x),
+                      y.loess.pool= loess.pool$fitted,
+                      year = "Pooled"),
+    aes(x = x.loess.pool, y = y.loess.pool, color = "LOESS")
+  ) + 
+  
+  
+  facet_wrap(~year) +
+  labs(
+    title = "Turnout (VEP) & HDI",
+    x = "HDI",
+    y = "Turnout"
+  ) +
+  scale_shape_manual(
+    name = "Year", 
+    values = c("circle", "diamond", "x")
+  ) +
+  scale_color_manual(
+    name = "Model",
+    values = scatter.colors,
+    labels = c("LOESS", "OLS", "Linear-Log", "Log-Log", "Quadratic")
+  ) +
+  theme_minimal() 
+
+
+
+ggplotly(gg3, tooltip = "text")
+
+gg3
+
