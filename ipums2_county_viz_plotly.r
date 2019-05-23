@@ -390,6 +390,234 @@ ggplotly(unface, tooltip = "text")
 
 
 # OK, but legend looks weird
+# Going to plotly native &  using subplot() for facetting.
+
+
+
+
+
+
+# PLOTLY NATIVE ====
+
+# Ignoring Quadratic, b/c I think it sucks
+
+# computed variables in pool df
+pool <- pool %>% 
+  mutate(
+    hdi2 = hdi ^ 2,
+    loghdi = log(hdi),
+    veppct = to.vep * 100,
+    logvep = log(veppct)
+  )
+
+# 2008 fits
+loess.2008 <- loess(veppct ~ hdi, data = pool, subset = (year == "2008"))
+ols.2008 <- lm(veppct ~ hdi, data = pool, subset = (year == "2008"))
+linlog.2008 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2008"))
+loglog.2008 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2008"))
+
+# 2012 fits
+loess.2012 <- loess(veppct ~ hdi, data = pool, subset = (year == "2012"))
+ols.2012 <- lm(veppct ~ hdi, data = pool, subset = (year == "2012"))
+linlog.2012 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2012"))
+loglog.2012 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2012"))
+
+# 2016 fits
+loess.2016 <- loess(veppct ~ hdi, data = pool, subset = (year == "2016"))
+ols.2016 <- lm(veppct ~ hdi, data = pool, subset = (year == "2016"))
+linlog.2016 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2016"))
+loglog.2016 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2016"))
+
+# pooled fits
+loess.pool <- loess(veppct ~ hdi, data = cnty)
+ols.pool <- lm(veppct ~ hdi, data = cnty)
+linlog.pool <- lm(veppct ~ loghdi, data = cnty)
+loglog.pool <- lm(logvep ~ loghdi, data = cnty)
+
+
+# palette
+p.colors <- brewer.pal(4, "Set2")
+
+
+# 2008 plot
+p08 <- pool %>% 
+  filter(year == "2008") %>% 
+  plot_ly(data = ., x = ~hdi) %>% 
+  add_markers(
+    y = ~veppct,
+    marker = list(
+      size = 10,
+      symbol = "circle",
+      color = "rgba(64, 64, 64, .7)",
+      line = list(color = "rgba(255, 255, 255, 1)", width = 1)
+    ),
+    name = "2008",
+    text = ~paste0(county, ", ", state,
+                   "<br>HDI: ", round(hdi, 2),
+                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+    hoverinfo = 'text'
+  ) %>% 
+  add_lines(
+    y = ~loess.2008$fitted,
+    name = "LOESS",
+    line = list(color = p.colors[1], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~ols.2008$fitted,
+    name = "OLS",
+    line = list(color = p.colors[2], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~linlog.2008$fitted,
+    name = "Linear-Log",
+    line = list(color = p.colors[3], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~exp(loglog.2008$fitted),
+    name = "Log-Log",
+    line = list(color = p.colors[4], width = 4),
+    visible = "legendonly"
+  )
+
+
+
+
+# 2012 plot
+p12 <- pool %>% 
+  filter(year == "2012") %>% 
+  plot_ly(data = ., x = ~hdi) %>% 
+  add_markers(
+    y = ~veppct,
+    marker = list(
+      size = 10,
+      symbol = "triangle",
+      color = "rgba(64, 64, 64, .7)",
+      line = list(color = "rgba(255, 255, 255, 1)", width = 1)
+    ),
+    name = "2012",
+    text = ~paste0(county, ", ", state,
+                   "<br>HDI: ", round(hdi, 2),
+                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+    hoverinfo = 'text'
+  ) %>% 
+  add_lines(
+    y = ~loess.2012$fitted,
+    name = "LOESS",
+    line = list(color = p.colors[1], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~ols.2012$fitted,
+    name = "OLS",
+    line = list(color = p.colors[2], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~linlog.2012$fitted,
+    name = "Linear-Log",
+    line = list(color = p.colors[3], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~exp(loglog.2012$fitted),
+    name = "Log-Log",
+    line = list(color = p.colors[4], width = 4),
+    visible = "legendonly"
+  )
+
+
+
+
+# 2016 plot
+p16 <- pool %>% 
+  filter(year == "2016") %>% 
+  plot_ly(data = ., x = ~hdi) %>% 
+  add_markers(
+    y = ~veppct,
+    marker = list(
+      size = 10,
+      symbol = "x",
+      color = "rgba(64, 64, 64, .7)",
+      line = list(color = "rgba(255, 255, 255, 1)", width = 1)
+    ),
+    name = "2016",
+    text = ~paste0(county, ", ", state,
+                   "<br>HDI: ", round(hdi, 2),
+                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+    hoverinfo = 'text'
+  ) %>% 
+  add_lines(
+    y = ~loess.2016$fitted,
+    name = "LOESS",
+    line = list(color = p.colors[1], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~ols.2016$fitted,
+    name = "OLS",
+    line = list(color = p.colors[2], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~linlog.2016$fitted,
+    name = "Linear-Log",
+    line = list(color = p.colors[3], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~exp(loglog.2016$fitted),
+    name = "Log-Log",
+    line = list(color = p.colors[4], width = 4),
+    visible = "legendonly"
+  )
+
+
+# pool plot
+pp <- cnty %>% 
+  plot_ly(data = ., x = ~hdi) %>% 
+  mutate(year = as_factor(year)) %>% 
+  add_markers(
+    y = ~veppct,
+    marker = list(
+      size = 10,
+      symbol = ~year,
+      symbols = c("circle", "triangle", "x"),
+      color = "rgba(64, 64, 64, .7)",
+      line = list(color = "rgba(255, 255, 255, 1)", width = 1)
+    ),
+    name = "Pooled",
+    text = ~paste0(county, ", ", state,
+                   "<br>HDI: ", round(hdi, 2),
+                   "<br>Turnout: ", round(to.vep * 100, 1), "%"),
+    hoverinfo = 'text'
+  ) %>% 
+  add_lines(
+    y = ~loess.pool$fitted,
+    name = "LOESS",
+    line = list(color = p.colors[1], width = 4)
+  ) %>% 
+  add_lines(
+    y = ~ols.pool$fitted,
+    name = "OLS",
+    line = list(color = p.colors[2], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~linlog.pool$fitted,
+    name = "Linear-Log",
+    line = list(color = p.colors[3], width = 4),
+    visible = "legendonly"
+  ) %>% 
+  add_lines(
+    y = ~exp(loglog.pool$fitted),
+    name = "Log-Log",
+    line = list(color = p.colors[4], width = 4),
+    visible = "legendonly"
+  )
+
+
+
+subplot(p08, p12, p16, pp, nrows = 2)
 
 
 
