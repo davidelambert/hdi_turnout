@@ -402,37 +402,53 @@ ggplotly(unface, tooltip = "text")
 # Ignoring Quadratic, b/c I think it sucks
 
 # computed variables in pool df
-pool <- pool %>% 
+cnty <- cnty %>% 
   mutate(
+    year = as.character(year),
+    year2 = year,
     hdi2 = hdi ^ 2,
     loghdi = log(hdi),
     veppct = to.vep * 100,
     logvep = log(veppct)
   )
 
-# 2008 fits
-loess.2008 <- loess(veppct ~ hdi, data = pool, subset = (year == "2008"))
-ols.2008 <- lm(veppct ~ hdi, data = pool, subset = (year == "2008"))
-linlog.2008 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2008"))
-loglog.2008 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2008"))
+# create new pooled set to attach
+temp <- cnty %>% 
+  mutate(year = "Pooled")
 
-# 2012 fits
-loess.2012 <- loess(veppct ~ hdi, data = pool, subset = (year == "2012"))
-ols.2012 <- lm(veppct ~ hdi, data = pool, subset = (year == "2012"))
-linlog.2012 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2012"))
-loglog.2012 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2012"))
 
-# 2016 fits
-loess.2016 <- loess(veppct ~ hdi, data = pool, subset = (year == "2016"))
-ols.2016 <- lm(veppct ~ hdi, data = pool, subset = (year == "2016"))
-linlog.2016 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2016"))
-loglog.2016 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2016"))
+# replace pooled set with this new one
+pool <- bind_rows(cnty, temp) %>% 
+  mutate(year = as_factor(year))
 
-# pooled fits
-loess.pool <- loess(veppct ~ hdi, data = cnty)
-ols.pool <- lm(veppct ~ hdi, data = cnty)
-linlog.pool <- lm(veppct ~ loghdi, data = cnty)
-loglog.pool <- lm(logvep ~ loghdi, data = cnty)
+
+rm(temp)
+  
+
+# Models
+  # 2008 fits
+  loess.2008 <- loess(veppct ~ hdi, data = pool, subset = (year == "2008"))
+  ols.2008 <- lm(veppct ~ hdi, data = pool, subset = (year == "2008"))
+  linlog.2008 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2008"))
+  loglog.2008 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2008"))
+  
+  # 2012 fits
+  loess.2012 <- loess(veppct ~ hdi, data = pool, subset = (year == "2012"))
+  ols.2012 <- lm(veppct ~ hdi, data = pool, subset = (year == "2012"))
+  linlog.2012 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2012"))
+  loglog.2012 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2012"))
+  
+  # 2016 fits
+  loess.2016 <- loess(veppct ~ hdi, data = pool, subset = (year == "2016"))
+  ols.2016 <- lm(veppct ~ hdi, data = pool, subset = (year == "2016"))
+  linlog.2016 <- lm(veppct ~ loghdi, data = pool, subset = (year == "2016"))
+  loglog.2016 <- lm(logvep ~ loghdi, data = pool, subset = (year == "2016"))
+  
+  # pooled fits
+  loess.pool <- loess(veppct ~ hdi, data = pool, subset = (year == "Pooled"))
+  ols.pool <- lm(veppct ~ hdi, data = pool, subset = (year == "Pooled"))
+  linlog.pool <- lm(veppct ~ loghdi, data = pool, subset = (year == "Pooled"))
+  loglog.pool <- lm(logvep ~ loghdi, data = pool, subset = (year == "Pooled"))
 
 
 # palette
@@ -460,23 +476,27 @@ p08 <- pool %>%
   add_lines(
     y = ~loess.2008$fitted,
     name = "LOESS",
-    line = list(color = p.colors[1], width = 4)
+    legendgroup = "loess",
+    line = list(color = p.colors[1], width = 4),
   ) %>% 
   add_lines(
     y = ~ols.2008$fitted,
     name = "OLS",
+    legendgroup = "ols",
     line = list(color = p.colors[2], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~linlog.2008$fitted,
     name = "Linear-Log",
+    legendgroup = "linlog",
     line = list(color = p.colors[3], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~exp(loglog.2008$fitted),
     name = "Log-Log",
+    legendgroup = "loglog",
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
   )
@@ -492,7 +512,7 @@ p12 <- pool %>%
     y = ~veppct,
     marker = list(
       size = 10,
-      symbol = "triangle",
+      symbol = "diamond",
       color = "rgba(64, 64, 64, .7)",
       line = list(color = "rgba(255, 255, 255, 1)", width = 1)
     ),
@@ -505,23 +525,31 @@ p12 <- pool %>%
   add_lines(
     y = ~loess.2012$fitted,
     name = "LOESS",
+    legendgroup = "loess",
+    showlegend = F,
     line = list(color = p.colors[1], width = 4)
   ) %>% 
   add_lines(
     y = ~ols.2012$fitted,
     name = "OLS",
+    legendgroup = "ols",
+    showlegend = F,
     line = list(color = p.colors[2], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~linlog.2012$fitted,
     name = "Linear-Log",
+    legendgroup = "linlog",
+    showlegend = F,
     line = list(color = p.colors[3], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~exp(loglog.2012$fitted),
     name = "Log-Log",
+    legendgroup = "loglog",
+    showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
   )
@@ -550,38 +578,49 @@ p16 <- pool %>%
   add_lines(
     y = ~loess.2016$fitted,
     name = "LOESS",
+    legendgroup = "loess",
+    showlegend = F,
     line = list(color = p.colors[1], width = 4)
   ) %>% 
   add_lines(
     y = ~ols.2016$fitted,
     name = "OLS",
+    legendgroup = "ols",
+    showlegend = F,
     line = list(color = p.colors[2], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~linlog.2016$fitted,
     name = "Linear-Log",
+    legendgroup = "linlog",
+    showlegend = F,
     line = list(color = p.colors[3], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~exp(loglog.2016$fitted),
     name = "Log-Log",
+    legendgroup = "loglog",
+    showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
   )
 
 
-# pool plot
-pp <- cnty %>% 
+
+
+
+# pooled plot
+pp <- pool %>% 
+  filter(year == "Pooled") %>% 
   plot_ly(data = ., x = ~hdi) %>% 
-  mutate(year = as_factor(year)) %>% 
   add_markers(
     y = ~veppct,
+    symbol = ~year2,
+    symbols = c("circle", "diamond", "x"),
     marker = list(
       size = 10,
-      symbol = ~year,
-      symbols = c("circle", "triangle", "x"),
       color = "rgba(64, 64, 64, .7)",
       line = list(color = "rgba(255, 255, 255, 1)", width = 1)
     ),
@@ -594,30 +633,39 @@ pp <- cnty %>%
   add_lines(
     y = ~loess.pool$fitted,
     name = "LOESS",
+    legendgroup = "loess",
+    showlegend = F,
     line = list(color = p.colors[1], width = 4)
   ) %>% 
   add_lines(
     y = ~ols.pool$fitted,
     name = "OLS",
+    legendgroup = "ols",
+    showlegend = F,
     line = list(color = p.colors[2], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~linlog.pool$fitted,
     name = "Linear-Log",
+    legendgroup = "linlog",
+    showlegend = F,
     line = list(color = p.colors[3], width = 4),
     visible = "legendonly"
   ) %>% 
   add_lines(
     y = ~exp(loglog.pool$fitted),
     name = "Log-Log",
+    legendgroup = "loglog",
+    showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
   )
 
 
+pp
 
-subplot(p08, p12, p16, pp, nrows = 2)
+subplot(p08, p12, p16, pp, nrows = 2, shareY = T, shareX = T)
 
 
 # OK, but doens't LINK zooming between facets.
