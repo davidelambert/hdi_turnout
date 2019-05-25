@@ -405,7 +405,19 @@ p08 <-
   ) %>% 
   layout(
     xaxis = list(range = c(2.5, 9.5)),
-    yaxis = list(range = c(30, 90))
+    yaxis = list(range = c(33, 87)),
+    annotations = 
+      list(
+        text = "2008",
+        xref = "paper",
+        yref = "paper",
+        xanchor = "center",
+        yanchor = "top",
+        align = "center",
+        x = 0.5,
+        y = 1.1,
+        showarrow = F
+      )
   )
 
 
@@ -510,7 +522,19 @@ p12 <-
   ) %>% 
   layout(
     xaxis = list(range = c(2.5, 9.5)),
-    yaxis = list(range = c(30, 90))
+    yaxis = list(range = c(33, 87)),
+    annotations = 
+      list(
+        text = "2012",
+        xref = "paper",
+        yref = "paper",
+        xanchor = "center",
+        yanchor = "top",
+        align = "center",
+        x = 0.5,
+        y = 1.1,
+        showarrow = F
+      )
   )
 
 
@@ -614,7 +638,19 @@ p16 <-
   ) %>% 
   layout(
     xaxis = list(range = c(2.5, 9.5)),
-    yaxis = list(range = c(30, 90))
+    yaxis = list(range = c(33, 87)),
+    annotations = 
+      list(
+        text = "2016",
+        xref = "paper",
+        yref = "paper",
+        xanchor = "center",
+        yanchor = "top",
+        align = "center",
+        x = 0.5,
+        y = 1.1,
+        showarrow = F
+      )
   )
 
 
@@ -716,15 +752,24 @@ pp <-
   ) %>% 
   layout(
     xaxis = list(range = c(2.5, 9.5)),
-    yaxis = list(range = c(30, 90))
+    yaxis = list(range = c(33, 87)),
+    annotations = 
+      list(
+        text = "Pooled",
+        xref = "paper",
+        yref = "paper",
+        xanchor = "center",
+        yanchor = "top",
+        align = "center",
+        x = 0.5,
+        y = 1.1,
+        showarrow = F
+      )
   )
 
 
 # subplot ====
 
-subplot(p08, p12, p16, pp, nrows = 2) %>% 
-  layout(
-    xaxis = list(name = "HDI"),
-    yaxis = list(name = "Turnout")
-  )
+subplot(p08, p12, p16, pp, nrows = 2, margin = .05)
+  
 
