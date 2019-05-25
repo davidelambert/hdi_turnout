@@ -60,7 +60,7 @@ corr.mat[upper.tri(corr.mat)] <- NA
 corr.melt <- melt(corr.mat, na.rm = TRUE)
 
 # get all.6 colors of canned palette to force darker/saturated endpoints
-corr.pal <- brewer.pal.6, "PRGn")
+corr.pal <- brewer.pal(7, "PRGn")
 
 # create the matrix
 corr.full <- corr.melt %>% 
@@ -70,7 +70,7 @@ corr.full <- corr.melt %>%
     aes(text = paste0(Var1, ",<br>", Var2, "<br>r = ", value))
   ) +
   scale_fill_gradient2(
-    low = corr.pal[1], mid = corr.pal[4], high = corr.pal.6],
+    low = corr.pal[1], mid = corr.pal[4], high = corr.pal[7],
     midpoint = 0, limit = c(-1,1), name = "Pearson's r"
   ) +
   theme_minimal() +
@@ -93,7 +93,7 @@ rm(list = setdiff(ls(pattern = "^corr."), "corr.full"))
 # HISTOGRAMS ====
 
 # simualte normal distributions based on pooled distribution
-set.seed(9832.64)
+set.seed(983264)
 
 norm.hdi <- rnorm(
   1980,
@@ -126,7 +126,7 @@ hist.hdi <-
 pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = hdi, y = ..density..),
-                 fill = "gre.60", color = "white") +
+                 fill = "grey60") +
   stat_density(aes(x = hdi, color = "Observed Density"),
                geom = "line", size = 1.2) +
   stat_density(aes(x = norm.hdi, color = "Simulated Normal"), 
@@ -160,7 +160,7 @@ hist.loghdi <-
 pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = log(hdi), y = ..density..),
-                 fill = "gre.60", color = "white") +
+                 fill = "grey60") +
   stat_density(aes(x = log(hdi), color = "Observed Density"),
                geom = "line", size = 1.2) +
   stat_density(aes(x = norm.hdilog, color = "Simulated Normal"), 
@@ -193,7 +193,7 @@ hist.vep <-
 pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = to.vep, y = ..density..),
-                 fill = "gre.60", color = "white") +
+                 fill = "grey60") +
   stat_density(aes(x = to.vep, color = "Observed Density"),
                geom = "line", size = 1.2) +
   stat_density(aes(x = norm.vep, color = "Simulated Normal"), 
@@ -226,7 +226,7 @@ hist.logvep <-
   pool %>% 
   ggplot() +
   geom_histogram(bins = 33, mapping = aes(x = log(to.vep), y = ..density..),
-                 fill = "gre.60", color = "white") +
+                 fill = "grey60") +
   stat_density(aes(x = log(to.vep), color = "Observed Density"),
                geom = "line", size = 1.2) +
   stat_density(aes(x = norm.veplog, color = "Simulated Normal"), 
@@ -253,151 +253,7 @@ ggplotly(hist.logvep)
 
 
 
-# SCATTERPLOTS ====
-
-# Define palette
-scatter.colors <- brewer.pal(5, "Set2")
-
-# base scatterplot, all models, no CI
-scatter <- 
-pool %>% 
-  ggplot(aes(x = hdi, y = veppct)) +
-  geom_point(
-    shape = 16,
-    alpha = .3,
-    size = 2,
-    stroke = 0,
-    aes(text = paste0(county, ", ", st,
-                      "<br>HDI: ", round(hdi, 2),
-                      "<br>Turnout: ", round(veppct, 1), "%"))
-  ) +
-  geom_smooth(
-    aes(color = "LOESS", fill = "LOESS"),
-    method = "loess",
-  ) +
-  geom_smooth(
-    aes(color = "OLS", fill = "OLS"),
-    method = "lm",
-  ) +
-  geom_smooth(
-    aes(color = "Linear-Log", fill = "Linear-Log"),
-    method = "lm",
-    formula = y ~ log(x),
-  ) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ splines::bs(x, degree = 2),
-    aes(color = "Quadratic", fill = "Quadratic")
-  ) +
-  facet_wrap(~year) +
-  scale_color_manual(name = "Model", values = scatter.colors) +
-  scale_fill_manual(name = "Model", values = scatter.colors) +
-  labs(
-    title = "Turnout (VEP) & HDI",
-    x = "HDI",
-    y = "Turnout"
-  ) +
-  theme_minimal() 
-
-
-    
-ggplotly(scatter, tooltip = "text")
-
-
-
-
-
-
-
-# Scatter Unfacetted ====
-
-# some new computed variables
-cnty <- cnty %>% 
-  mutate(
-    hdi2 = hdi ^ 2,
-    loghdi = log(hdi),
-    veppct = to.vep * 100,
-    logvep = log(veppct)
-  )
-
-# Models 
-loess <- loess(data = cnty, veppct ~ hdi)
-lm <- lm(data = cnty, veppct ~ hdi)
-quad <- lm(data = cnty, veppct ~ hdi + hdi2)
-linlog <- lm(data = cnty, veppct ~ loghdi)
-loglog <- lm(data = cnty, logvep ~ loghdi)
-
-
-# Define palette
-unface.colors <- brewer.pal(5, "Set2")
-
-# base scatterplot, all models, no CI
-unface <- 
-  cnty %>% 
-  mutate(year = as_factor(year)) %>% 
-  ggplot() +
-  geom_point(
-    alpha = .3,
-    size = 2,
-    aes(
-      x = hdi, y = veppct, shape = year,
-      text = paste0(county, ", ", st,
-                    "<br>HDI: ", round(hdi, 2),
-                    "<br>Turnout: ", round(veppct, 1), "%")
-    )
-  ) +
-  geom_line(
-    data = data.frame(x.loess = as.vector(loess$x),
-                      y.loess = loess$fitted),
-    aes(x = x.loess, y = y.loess, color = "LOESS"),
-    size = 1.2
-  ) + 
-  geom_line(
-    data = data.frame(x.lm = lm$model$hdi,
-                      y.lm = lm$fitted.values),
-    aes(x = x.lm, y = y.lm, color = "OLS"),
-    size = 1.2
-  ) +
-  geom_line(
-    data = data.frame(x.linlog = exp(linlog$model$loghdi),
-                      y.linlog = linlog$fitted.values),
-    aes(x = x.linlog, y = y.linlog, color = "Linear-Log"),
-    size = 1.2
-  ) +
-  geom_line(
-    data = data.frame(x.loglog = exp(loglog$model$loghdi),
-                      y.loglog = exp(loglog$fitted.values)),
-    aes(x = x.loglog, y = y.loglog, color = "Log-Log"),
-        size = 1.2
-  ) +
-  geom_line(
-    data = data.frame(x.quad = quad$model$hdi,
-                      y.quad = quad$fitted.values),
-    aes(x = x.quad, y = y.quad, color = "Quadratic"),
-    size = 1.2
-  ) +
-  scale_shape_discrete(name = "") +
-  scale_color_manual(name = "", values = unface.colors) +
-  labs(
-    title = "Turnout (VEP) & HDI",
-    x = "HDI",
-    y = "Turnout"
-  ) +
-  theme_minimal() 
-
-
-ggplotly(unface, tooltip = "text")
-
-
-# OK, but legend looks weird
-# Going to plotly native &  using subplot() for facetting.
-
-
-
-
-
-
-# PLOTLY NATIVE ====
+# scatterplot preprocessing ====
 
 # Ignoring Quadratic, b/c I think it sucks
 
@@ -412,18 +268,6 @@ cnty <- cnty %>%
     logvep = log(veppct)
   )
 
-# create new pooled set to attach
-temp <- cnty %>% 
-  mutate(year = "Pooled")
-
-
-# replace pooled set with this new one
-pool <- bind_rows(cnty, temp) %>% 
-  mutate(year = as_factor(year))
-
-
-rm(temp)
-  
 
 # Models
   # 2008 fits
@@ -558,6 +402,10 @@ p08 <-
     showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
+  ) %>% 
+  layout(
+    xaxis = list(range = c(2.5, 9.5)),
+    yaxis = list(range = c(30, 90))
   )
 
 
@@ -659,6 +507,10 @@ p12 <-
     showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
+  ) %>% 
+  layout(
+    xaxis = list(range = c(2.5, 9.5)),
+    yaxis = list(range = c(30, 90))
   )
 
 
@@ -759,6 +611,10 @@ p16 <-
     showlegend = F,
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
+  ) %>% 
+  layout(
+    xaxis = list(range = c(2.5, 9.5)),
+    yaxis = list(range = c(30, 90))
   )
 
 
@@ -857,10 +713,18 @@ pp <-
     legendgroup = "loglog",
     line = list(color = p.colors[4], width = 4),
     visible = "legendonly"
+  ) %>% 
+  layout(
+    xaxis = list(range = c(2.5, 9.5)),
+    yaxis = list(range = c(30, 90))
   )
 
 
 # subplot ====
 
-subplot(p08, p12, p16, pp, nrows = 2)
+subplot(p08, p12, p16, pp, nrows = 2) %>% 
+  layout(
+    xaxis = list(name = "HDI"),
+    yaxis = list(name = "Turnout")
+  )
 
