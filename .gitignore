@@ -11,3 +11,4 @@ nc16.Rproj
 cntpan.csv
 cntpan_pull.csv
 ipums2_recode.Rdata
+*.ini
