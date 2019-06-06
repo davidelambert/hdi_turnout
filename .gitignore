@@ -12,3 +12,4 @@ cntpan.csv
 cntpan_pull.csv
 ipums2_recode.Rdata
 *.ini
+nc16py/
