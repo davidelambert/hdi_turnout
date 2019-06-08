@@ -13,3 +13,4 @@ cntpan_pull.csv
 ipums2_recode.Rdata
 *.ini
 nc16py/
+nc16py/ipums2_county_viz.py
